@@ -1,4 +1,11 @@
+# NEW: minademian.com
+
 This is [minademian.com](https://minademian.com/) bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+
+## Backlog
+
+- [ ] darkmode
+- [ ] CI/CD + GitHub Actions + deploy from cli
 
 ## Getting Started
 
