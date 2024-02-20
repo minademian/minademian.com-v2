@@ -37,7 +37,7 @@ const FeaturedArticle = ({
   link,
 }: FeaturedArticleProps) => {
   return (
-    <li className="relative col-span-1 w-full p-4 bg-light border border-solid border-dark rounded-2xl">
+    <li className="relative col-span-1 w-full p-4 bg-light  dark:bg-dark dark:border-light  border border-solid border-dark rounded-2xl dark:text-light">
       <div
         className="absolute top-0 -right-3 -z-10 w-[101%] h-[103%] rounded-[2rem] bg-dark"
         rounded-br-3xl
@@ -60,7 +60,9 @@ const FeaturedArticle = ({
           {title}
         </h2>
         <p className="text-sm mb-2">{summary}</p>
-        <span className="text-primary font-semibold">{time}</span>
+        <span className="text-primary dark:text-primaryDark font-semibold">
+          {time}
+        </span>
       </Link>
     </li>
   );
@@ -90,7 +92,7 @@ const MovingImage = ({ title, img, link }: MovingImageProps) => {
       onMouseMove={handleMouse}
       onMouseLeave={handleMouseLeave}
     >
-      <h2 className="capitalize text-xl font-semibold hover:underline">
+      <h2 className="capitalize text-xl dark:text-light font-semibold hover:underline">
         {title}
       </h2>
       <FramerImage
@@ -101,6 +103,8 @@ const MovingImage = ({ title, img, link }: MovingImageProps) => {
         className="w-96 h-auto hidden absolute rounded-lg z-10"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1, transition: { duration: 0.2 } }}
+        priority
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
     </Link>
   );
@@ -112,10 +116,14 @@ const Article = ({ img, title, date, link }: ArticleProps) => {
       initial={{ y: 200 }}
       whileInView={{ y: 0, transition: { duration: 0.5, ease: 'easeInOut' } }}
       viewport={{ once: true }}
-      className="relative w-full p-4 py-6 my-4 rounded-xl flex items-center justify-between bg-light text-dark first:mt-0 border border-solid border-dark border-r-4 border-b-4"
+      className="relative w-full p-4 py-6 my-4 rounded-xl flex items-center justify-between bg-light text-dark first:mt-0 border border-solid border-dark border-r-4 border-b-4
+       dark:bg-dark dark:border-light
+      "
     >
       <MovingImage img={img} title={title} link={link} />
-      <span className="text-primary font-semibold pl-4">{date}</span>
+      <span className="text-primary dark:text-primaryDark font-semibold pl-4">
+        {date}
+      </span>
     </motion.li>
   );
 };
@@ -130,7 +138,6 @@ export default function About() {
           content="articles Mina Demian - minademian.com fullstack engineer software engineer web development frontend engineer backend"
         />
       </Head>
-      <NavBar></NavBar>
       <main className="flex w-full flex-col items-center justify-center mb-16 overflow-hidden">
         <SectionComponent className="pt-16">
           <AnimatedText text="Articles" className="mb-16" />
@@ -150,7 +157,7 @@ export default function About() {
               img={newssifter}
             />
           </ul>
-          <h2 className="font-bold text-4xl w-full text-center my-16">
+          <h2 className="font-bold text-4xl w-full text-center my-16 dark:text-light">
             All Articles
           </h2>
           <ul>

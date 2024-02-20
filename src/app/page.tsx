@@ -4,11 +4,9 @@ import Link from 'next/link';
 import Head from 'next/head';
 import Image from 'next/image';
 
-import NavBar from './components/NavBar.component';
 import AnimatedText from './components/AnimatedText.component';
 import { LinkArrow } from './components/Icons.component';
 import HireMe from './components/HireMe.component';
-import Footer from './components/Footer.component';
 
 import profilePic from '../../public/images/art/homepage-art-3.png';
 import lightBulb from '../../public/images/miscellaneous_icons_1.svg';
@@ -23,9 +21,7 @@ export const SectionComponent = ({
   className = '',
 }: ComponentProps) => {
   return (
-    <div
-      className={`w-full h-full inline-block z-0 bg-light p-32 ${className}`}
-    >
+    <div className={`w-full h-full inline-block z-0 p-32 ${className}`}>
       {children}
     </div>
   );
@@ -43,8 +39,7 @@ export default function Page() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <NavBar></NavBar>
-      <main className="flex items-center text-dark w-full min-h-screen">
+      <main className="flex items-center bg-light dark:bg-dark dark:text-light w-full min-h-screen text-dark">
         <SectionComponent className="pt-0">
           <div className="flex items-center justify-between w-full">
             <div className="w-1/2">
@@ -52,6 +47,8 @@ export default function Page() {
                 src={profilePic}
                 alt="minademian.com digital art"
                 className="w-full h-auto"
+                priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             </div>
             <div className="w-1/2 flex flex-col items-center self-center">
@@ -68,7 +65,12 @@ export default function Page() {
                 <Link
                   href="/dummy.pdf"
                   target={'_blank'}
-                  className="flex items-center bg-dark text-light p-2.5 px-6 rounded-lg text-lg font-semibold hover:bg-light hover:text-dark border-2 border-solid border-transparent hover:border-dark"
+                  className="flex items-center text-light p-2.5 px-6 rounded-lg text-lg 
+                  font-semibold border-2 border-solid bg-dark
+                  border-transparent  dark:bg-light dark:text-dark
+                  hover:border-dark hover:bg-light hover:text-dark
+                  hover:dark:bg-dark hover:dark:text-light hover:dark:border-light
+                  "
                   download={true}
                 >
                   Resume <LinkArrow className={'w-6 ml-1'} />
@@ -76,7 +78,8 @@ export default function Page() {
                 <Link
                   href="mailto:mina@minademian.com"
                   target={'_blank'}
-                  className="ml-4 text-lg font-medium capitalize text-dark underline"
+                  className="ml-4 text-lg font-medium capitalize text-dark dark:text-light underline
+                  "
                 >
                   Contact
                 </Link>
@@ -93,7 +96,6 @@ export default function Page() {
           />
         </div>
       </main>
-      <Footer></Footer>
     </>
   );
 }
