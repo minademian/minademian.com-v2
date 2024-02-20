@@ -9,6 +9,7 @@ import { SectionComponent } from '@/app/page';
 import NavBar from '@/app/components/NavBar.component';
 import { GitHubIcon } from '../components/Icons.component';
 import newssifter from '../../../public/images/projects/newssifter.png';
+import TransitionEffect from '../components/TransitionEffect';
 
 type ProjectProps = {
   type: string;
@@ -131,6 +132,7 @@ export default function Projects() {
           content="about Mina Demian - minademian.com fullstack engineer software engineer web development frontend engineer backend"
         />
       </Head>
+      <TransitionEffect />
       <main className="flex w-full flex-col items-center justify-center bg-light dark:bg-dark dark:text-light">
         <SectionComponent className="pt-16">
           <AnimatedText text="Projects" className="mb-16" />

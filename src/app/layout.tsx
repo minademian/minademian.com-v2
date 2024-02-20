@@ -1,9 +1,12 @@
+'use client';
+
 import { Montserrat } from 'next/font/google';
 import '@/styles/globals.css';
 
 import NavBar from './components/NavBar.component';
 import Footer from './components/Footer.component';
 import Script from 'next/script';
+import { AnimatePresence } from 'framer-motion';
 
 const montserrat = Montserrat({ subsets: ['latin'], variable: '--font-mont' });
 
@@ -15,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${montserrat.variable} font-mont bg-light dark:bg-dark w-full min-h-screen`}
+        className={`${montserrat.variable} font-mont bg-light dark:bg-dark w-full min-h-screen xl:p-24 lg:p-16 md:p-12 sm:p-8`}
       >
         <Script id="theme-switcher" strategy="beforeInteractive">
           {`
@@ -28,7 +31,7 @@ export default function RootLayout({
           `}
         </Script>
         <NavBar></NavBar>
-        {children}
+        <AnimatePresence mode="wait">{children}</AnimatePresence>
         <Footer></Footer>
       </body>
     </html>

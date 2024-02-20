@@ -12,6 +12,7 @@ import { SectionComponent } from '@/app/page';
 import NavBar from '@/app/components/NavBar.component';
 
 import newssifter from '../../../public/images/projects/newssifter.png';
+import TransitionEffect from '../components/TransitionEffect';
 
 const FramerImage = motion(Image);
 
@@ -138,6 +139,7 @@ export default function About() {
           content="articles Mina Demian - minademian.com fullstack engineer software engineer web development frontend engineer backend"
         />
       </Head>
+      <TransitionEffect />
       <main className="flex w-full flex-col items-center justify-center mb-16 overflow-hidden">
         <SectionComponent className="pt-16">
           <AnimatedText text="Articles" className="mb-16" />
