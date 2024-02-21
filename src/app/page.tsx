@@ -35,7 +35,7 @@ export default function Page() {
         <title>Minademian.com</title>
         <meta
           name="description"
-          content="Minademian.com personal website and portfolio"
+          content="Minademian.com personal website and portfolio - minademian.com fullstack full-stack engineer software engineer web development frontend engineer backend"
         ></meta>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -65,7 +65,7 @@ export default function Page() {
               </p>
               <div className="flex items-center self-start mt-2 lg:self-center">
                 <Link
-                  href="/dummy.pdf"
+                  href="https://files.minademian/MinaDemian-2024-website.pdf"
                   target={'_blank'}
                   className="flex items-center text-light p-2.5 px-6 rounded-lg text-lg 
                   font-semibold border-2 border-solid bg-dark

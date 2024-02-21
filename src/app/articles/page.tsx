@@ -12,6 +12,8 @@ import { SectionComponent } from '@/app/page';
 import NavBar from '@/app/components/NavBar.component';
 
 import newssifter from '../../../public/images/projects/newssifter.png';
+import devtalk from '../../../public/images/articles/devtalk.png';
+import githubp from '../../../public/images/articles/github.png';
 import TransitionEffect from '../components/TransitionEffect';
 
 const FramerImage = motion(Image);
@@ -145,54 +147,19 @@ export default function About() {
           <AnimatedText text="Articles" className="mb-16" />
           <ul className="grid grid-cols-2 gap-16">
             <FeaturedArticle
-              title="test"
-              summary="test"
-              time="9 min read"
-              link="/"
-              img={newssifter}
+              title="Addressing GitHub’s Vulnerability Warning in Your Code Repository"
+              summary="A guide on how to address GitHub's vulneravility warnings in your GitHub repositories"
+              time="4 min read"
+              link="https://blog.minademian.com/2018/06/26/addressing-githubs-vulnerability-warning-in-your-code-repository/"
+              img={githubp}
             />
             <FeaturedArticle
-              title="test"
-              summary="test"
-              time="9 min read"
-              link="/"
-              img={newssifter}
+              title="Lightning Talk - Openshift Container Platform"
+              summary="A web presentation of a lightning talk given at a previous employer. A quick guide to how to deploy frontend apps with Redhat Openshift."
+              time="5 min read"
+              link="https://projects.minademian.com/talk/"
+              img={devtalk}
             />
-          </ul>
-          <h2 className="font-bold text-4xl w-full text-center my-16 dark:text-light">
-            All Articles
-          </h2>
-          <ul>
-            <Article
-              title="test"
-              img={newssifter}
-              date="hello"
-              link="mina"
-            ></Article>
-            <Article
-              title="test"
-              img={newssifter}
-              date="hello"
-              link="mina"
-            ></Article>
-            <Article
-              title="test"
-              img={newssifter}
-              date="hello"
-              link="mina"
-            ></Article>
-            <Article
-              title="test"
-              img={newssifter}
-              date="hello"
-              link="mina"
-            ></Article>
-            <Article
-              title="test"
-              img={newssifter}
-              date="hello"
-              link="mina"
-            ></Article>
           </ul>
         </SectionComponent>
       </main>
