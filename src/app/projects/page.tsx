@@ -32,7 +32,7 @@ const FeaturedProject = ({
   github,
 }: ProjectProps) => {
   return (
-    <article className="w-full flex items-center justify-between relative rounded-br-2xl rounded-3xl border border-solid border-dark bg-light dark:bg-dark dark:border-light shadow-2xl p-12">
+    <article className="w-full flex items-center justify-between 2xs:flex-col relative rounded-br-2xl rounded-3xl border border-solid border-dark bg-light dark:bg-dark dark:border-light shadow-2xl p-12 2xs:p-3">
       <div className="absolute top-0 -right-3 -z-10 w-[101%] h-[103%] rounded-[2rem] bg-dark dark:bg-light" />
       <Link
         href={link}
@@ -136,12 +136,15 @@ export default function Projects() {
         />
       </Head>
       <TransitionEffect />
-      <main className="flex w-full flex-col items-center justify-center bg-light dark:bg-dark dark:text-light">
-        <SectionComponent className="pt-16">
-          <AnimatedText text="Projects" className="mb-16" />
-          <div className="grid grid-cols-12 gap-24">
-            <div className="col-span-12">
-              <FeaturedProject
+      <main className="flex w-full flex-col items-center justify-center bg-light dark:bg-dark dark:text-light 2xs:w-full 2xs:p-0">
+        <SectionComponent className="pt-16 2xs:p-2 2xs:mt-2">
+          <AnimatedText
+            text="Projects"
+            className="mb-16 2xs:!text-4xl 2xs:p-0 2xs:mt-4 2xs:mb-8"
+          />
+          <div className="grid grid-cols-12 gap-24 2xs:grid-cols-6 2xs:gap-20">
+            <div className="col-span-12 2xs:col-span-6 2xs:mr-8">
+              <Project
                 title="News Sifter"
                 summary="News Sifter will be a chatbot that will provide context for news articles. The user sends a news article and the bot checks it against a publicly available spreadsheet. Context returned is not provided as-is, a disclaimer will also be added. Built with React, TypeScript, Express, and Tailwind."
                 link="#"
@@ -150,7 +153,7 @@ export default function Projects() {
                 img={newssifter}
               />
             </div>
-            <div className="col-span-6">
+            <div className="col-span-6 2xs:col-span-6 2xs:mr-8">
               {' '}
               <Project
                 title="Scania Driver Evaluation Dashboard"
@@ -161,7 +164,7 @@ export default function Projects() {
                 github="https://github.com/minademian/scania-testcase"
               />
             </div>
-            <div className="col-span-6">
+            <div className="col-span-6 2xs:col-span-6 2xs:mr-8 2xs:mb-4">
               {' '}
               <Project
                 title="Lärportalen (Teachers' Portal)"

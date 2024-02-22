@@ -41,8 +41,8 @@ export default function Page() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <TransitionEffect />
-      <main className="flex items-center bg-light dark:bg-dark dark:text-light w-full min-h-screen text-dark">
-        <SectionComponent className="pt-0 md:p-16 sm:pt-8">
+      <main className="flex items-center bg-light dark:bg-dark dark:text-light w-full min-h-screen text-dark 2xs:w-full 2xs:p-1">
+        <SectionComponent className="pt-0 md:p-16 sm:pt-8 2xs:p-0">
           <div className="flex items-center justify-between w-full lg:flex-col">
             <div className="w-1/2 md:w-full lg:w-full md:mb-4">
               <Image
@@ -58,7 +58,7 @@ export default function Page() {
                 text="Turning Ideas Into Scaleable Products"
                 className="!text-6xl !text-left xl:!text-5xl lg:!text-center lg:!text-6xl md:!text-5xl sm:!text-3xl"
               />
-              <p className="my-4 text-2xl font-medium lg:!text-3xl md:!text-2xl sm:!text-3xl">
+              <p className="my-4 text-2xl font-medium lg:!text-3xl md:!text-2xl sm:!text-3xl 2xs:!text-sm 2xs:p-0">
                 As an experienced full-stack engineer, I am committed to making
                 great products. Explore my latest projects and blog posts,
                 showcasing my skills in modern web development.

@@ -29,7 +29,7 @@ const Skill = ({ name, x, y }: SkillProps) => {
 const Skills = () => {
   return (
     <>
-      <h2 className="font-bold text-8xl mt-64 w-full text-center md:text-6xl md:mt-32">
+      <h2 className="font-bold text-8xl mt-64 w-full text-center md:text-6xl md:mt-32 2xs:mt-5 2xs:mb-5">
         Skills
       </h2>
       <div
@@ -46,19 +46,23 @@ const Skills = () => {
         >
           Web
         </motion.div>
-        <Skill name="HTML" x="-8vw" y="2vw" />
-        <Skill name="CSS" x="8vw" y="2vw" />
-        <Skill name="TypeScript" x="0vw" y="5vw" />
-        <Skill name="JavaScript" x="0vw" y="-5vw" />
-        <Skill name="TailWind" x="14vw" y="2vw" />
-        <Skill name="MUI" x="2vw" y="-8vw" />
-        <Skill name="SASS" x="8vw" y="-6vw" />
-        <Skill name="React.js" x="-8vw" y="-2vw" />
-        <Skill name="Next.js" x="-8vw" y="-5vw" />
-        <Skill name="Angular" x="-14vw" y="-2vw" />
-        <Skill name="Node.js" x="-5vw" y="-8vw" />
-        <Skill name="Koa.js" x="2vw" y="-8vw" />
-        <Skill name="Express.js" x="8vw" y="-6vw" />
+        <Skill name="HTML" x="-30vw" y="2vw" />
+        <Skill name="CSS" x="38vw" y="2vw" />
+        <Skill name="TypeScript" x="30vw" y="5vw" />
+        <Skill name="JavaScript" x="30vw" y="-15vw" />
+        <Skill name="TailWind" x="34vw" y="-10vw" />
+        <Skill name="MUI" x="22vw" y="-18vw" />
+        <Skill name="SASS" x="38vw" y="-6vw" />
+        <Skill name="React.js" x="-28vw" y="-12vw" />
+        <Skill name="Next.js" x="-38vw" y="-5vw" />
+        <Skill name="Angular" x="-34vw" y="-18vw" />
+        <Skill name="Node.js" x="-15vw" y="-8vw" />
+        <Skill name="Koa.js" x="12vw" y="-22vw" />
+        <Skill name="Express.js" x="8vw" y="-26vw" />
+        <Skill name="Kubernetes" x="12vw" y="22vw" />
+        <Skill name="Google Cloud" x="8vw" y="26vw" />
+        <Skill name="Postgres" x="12vw" y="12vw" />
+        <Skill name="IaC" x="8vw" y="16vw" />
       </div>
     </>
   );

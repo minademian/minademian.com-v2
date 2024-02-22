@@ -106,7 +106,7 @@ const Experience = () => {
   });
 
   return (
-    <div className="my-8">
+    <div className="my-8 2xs:p-0">
       <div ref={ref} className="w-[75%] mx-auto relative">
         <motion.div
           style={{ scaleY: scrollYProgress }}

@@ -22,14 +22,14 @@ export default function About() {
         />
       </Head>
       <TransitionEffect />
-      <main className="flex w-full flex-col items-center justify-center bg-light dark:bg-dark dark:text-light">
-        <SectionComponent className="pt-16">
+      <main className="flex w-full flex-col items-center justify-center bg-light dark:bg-dark dark:text-light 2xs:w-full 2xs:p-0">
+        <SectionComponent className="pt-16 2xs:p-2 2xs:mt-2">
           <AnimatedText
             text="Passionate About Products"
-            className="mb-16 lg:!text-7xl sm:!text-6xl xs:!text-4xl sm:mb-8"
+            className="mb-16 lg:!text-7xl sm:!text-6xl xs:!text-4xl sm:mb-8 2xs:!text-3xl 2xs:p-0 2xs:mb-8"
           />
-          <div className="grid w-full grid-cols-8 gap-16">
-            <div className="col-span-4 flex flex-col items-start justify-start xl:col-span-4 md:order-2 md:col-span-8">
+          <div className="grid w-full grid-cols-8 gap-16 2xs:gap-19 2xs:p-0">
+            <div className="col-span-4 flex flex-col items-start justify-start xl:col-span-4 md:order-2 md:col-span-8 2xs:col-span-8 2xs:mr-[5rem]">
               <h2 className="mb-4 text-lg font-bold uppercase text-dark/75 dark:text-light">
                 Profile
               </h2>
@@ -52,7 +52,7 @@ export default function About() {
                 people, and teamwork is where real magic happens.
               </p>
             </div>
-            <div className="col-span-4 relative h-max rounded-2xl border-2 border-solid border-dark bg-light p-8 md:order-1 md:col-span-8">
+            <div className="col-span-4 relative h-max rounded-2xl border-2 border-solid border-dark bg-light p-8 2xs:p-3 2xs:w-[90vw] md:order-1 md:col-span-8">
               <div className="absolute top-0 -right-3 -z-10 w-[102%] h-[103%] rounded-[2rem] bg-dark dark:bg-light" />
               <Image
                 src={profilePhoto}
@@ -65,15 +65,18 @@ export default function About() {
           </div>
           <Skills />
         </SectionComponent>
-        <SectionComponent>
+        <SectionComponent className="pt-16 2xs:p-2 2xs:mt-2">
           <AnimatedText
             text="Experience"
-            className="mb-32 md:text-6xl xs:text-4xl md:mb-16"
+            className="mb-32 md:text-6xl xs:text-4xl md:mb-16 2xs:!text-3xl 2xs:p-0 2xs:mt-4 2xs:mb-8"
           />
           <Experience />
         </SectionComponent>
-        <SectionComponent>
-          <AnimatedText text="Education" className="mb-16" />
+        <SectionComponent className="pt-16 2xs:p-2 2xs:mt-2">
+          <AnimatedText
+            text="Education"
+            className="mb-16  2xs:!text-3xl 2xs:p-0 2xs:mt-4 2xs:mb-8"
+          />
           <Studies />
         </SectionComponent>
       </main>
