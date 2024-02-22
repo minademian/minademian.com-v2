@@ -156,7 +156,7 @@ export default function About() {
           />
           <ul className="grid grid-cols-2 gap-16 2xs:flex 2xs:flex-col 2xs:gap-20">
             <FeaturedArticle
-              title="Addressing GitHub&pos;s Vulnerability Warning in Your Code Repository"
+              title="Addressing GitHub's Vulnerability Warning in Your Code Repository"
               summary="A guide on how to address GitHub's vulneravility warnings in your GitHub repositories"
               time="4 min read"
               link="https://blog.minademian.com/2018/06/26/addressing-githubs-vulnerability-warning-in-your-code-repository/"
