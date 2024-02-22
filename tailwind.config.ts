@@ -54,6 +54,8 @@ const config: Config = {
         // => @media (max-width: 639px) { ... }
         xs: { max: '479px' },
         // => @media (max-width: 479px) { ... }
+        '2xs': { max: '412px' },
+        // => @media (max-width: 412px) { ... }
       },
     },
   },
