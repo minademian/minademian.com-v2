@@ -3,9 +3,11 @@ import Link from 'next/link';
 
 import { HireMeIcon } from './Icons.component';
 
-const HireMe = () => {
+const HireMe = ({ className }: { className: string }) => {
   return (
-    <div className="fixed left-4 bottom-4 flex items-center justify-center overflow-hidden md:right-8 md:left-auto md:top-0 md:bottom-auto md:absolute 2xs:top-0 2xs:right-0">
+    <div
+      className={`fixed left-4 bottom-4 flex items-center justify-center overflow-hidden md:right-8 md:left-auto md:top-0 md:bottom-auto md:absolute ${className}`}
+    >
       <div className="w-48 h-auto flex items-center justify-center relative">
         <HireMeIcon className="fill-dark dark:fill-light animate-spin-slow" />
         <Link

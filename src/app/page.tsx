@@ -89,7 +89,7 @@ export default function Page() {
             </div>
           </div>
         </SectionComponent>
-        <HireMe></HireMe>
+        <HireMe className="md:hidden"></HireMe>
         <div className="absolute right-8 bottom-8 inline-block w-24 md:hidden">
           <Image
             src={lightBulb}
