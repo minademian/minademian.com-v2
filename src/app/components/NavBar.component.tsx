@@ -197,12 +197,12 @@ const MobileNavLink: FC<MobileNavLinkProps> = ({
 
   const handleClick = () => {
     toggle();
-    router.push(href);
+    router.push(href as string);
   };
 
   return (
     <button
-      href={href}
+      ref={href as string}
       className={`${className} relative group my-2 text-light dark:text-dark`}
       onClick={handleClick}
     >

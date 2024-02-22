@@ -19,7 +19,7 @@ type ProjectProps = {
   title: string;
   summary: string;
   img: StaticImageData;
-  link: string;
+  link: string | URL;
   github?: string | null;
 };
 
@@ -60,7 +60,7 @@ const FeaturedProject = ({
         </Link>
         <p className="my-2 font-medium text-dark dark:text-light">{summary}</p>
         <div className="mt-2 flex items-center">
-          <Link href={github} className="w-10" target="_blank">
+          <Link href={github as string} className="w-10" target="_blank">
             <GitHubIcon />
           </Link>
           <Link

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, SyntheticEvent, MouseEventHandler } from 'react';
 import Head from 'next/head';
 import Image, { StaticImageData } from 'next/image';
 import Link from 'next/link';
@@ -71,19 +71,25 @@ const FeaturedArticle = ({
   );
 };
 
+type EventType = MouseEventHandler<HTMLAnchorElement>;
+
 const MovingImage = ({ title, img, link }: MovingImageProps) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const imgRef = useRef(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
-  function handleMouse(event) {
-    imgRef.current.style.display = 'inline-block';
-    x.set(event.pageX);
+  function handleMouse(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
+    let display = imgRef?.current?.style.display;
+    display = 'inline-block';
+    x.set(e.pageX);
     y.set(-10);
   }
 
-  function handleMouseLeave(event) {
-    imgRef.current.style.display = 'none';
+  function handleMouseLeave(
+    event: React.MouseEvent<HTMLAnchorElement, MouseEvent>
+  ) {
+    let display = imgRef?.current?.style.display;
+    display = 'none';
     x.set(0);
     y.set(0);
   }
