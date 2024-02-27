@@ -113,12 +113,21 @@ const Project = ({ type, title, summary, img, link, github }: ProjectProps) => {
               <GitHubIcon />
             </Link>
           ) : null}
-          <Link
-            href={link}
-            className="ml-4 rounded-lg bg-dark text-light p-2 px-6 text-lg font-semibold dark:bg-light dark:text-dark"
-          >
-            View Project
-          </Link>
+          {link == '#' ? (
+            <Link
+              href=""
+              className="ml-4 rounded-lg bg-dark text-light p-2 px-6 text-lg font-semibold dark:bg-light dark:text-dark"
+            >
+              Coming Soon
+            </Link>
+          ) : (
+            <Link
+              href={link}
+              className="ml-4 rounded-lg bg-dark text-light p-2 px-6 text-lg font-semibold dark:bg-light dark:text-dark"
+            >
+              View Project
+            </Link>
+          )}
         </div>
       </div>
     </article>
