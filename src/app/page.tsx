@@ -65,7 +65,7 @@ export default function Page() {
               </p>
               <div className="flex items-center self-start mt-2 lg:self-center">
                 <Link
-                  href="https://files.minademian/MinaDemian-2024-website.pdf"
+                  href="https://files.minademian.com/MinaDemian-2024-website.pdf"
                   target={'_blank'}
                   className="flex items-center text-light p-2.5 px-6 rounded-lg text-lg 
                   font-semibold border-2 border-solid bg-dark
