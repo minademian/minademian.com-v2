@@ -4,7 +4,7 @@ import React, { FC } from 'react';
 
 import { motion } from 'framer-motion';
 
-import { MotionLinkProps } from '@/types/NavBar.type';
+import { MotionLinkProps } from '@/app/types/NavBar.type';
 
 const MotionLink: FC<MotionLinkProps> = ({
   href,

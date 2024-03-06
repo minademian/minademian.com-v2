@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { SectionComponent } from '../page';
+import { SectionComponent } from '@/components/atoms/Section.component';
 import Link from 'next/link';
 
 const Footer = () => {
