@@ -16,6 +16,7 @@
     "sharp": "^0.33.2"
   },
   "devDependencies": {
+    "server-only": "^0.0.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
