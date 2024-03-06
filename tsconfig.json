@@ -22,15 +22,14 @@
       "@/app/*": ["./*"],
       "@/styles/*": ["styles/*"],
       "@/components/*": ["components/*"],
+      "@/atoms/*": ["components/atoms/*"],
+      "@/molecules/*": ["components/molecules/*"],
+      "@/organisms/*": ["components/organisms/*"],
+      "@/pages/*": ["components/pages/*"],
+      "@/templates/*": ["components/templates/*"],
       "@/types/*": ["types/*"]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "v2.0/types/**/*.ts"
-  ],
-  "exclude": ["node_modules"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "v2.0"]
 }
