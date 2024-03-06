@@ -1,45 +1,20 @@
-import { ReactNode } from 'react';
+'use client';
 
 import Link from 'next/link';
-import Head from 'next/head';
 import Image from 'next/image';
 
-import AnimatedText from './components/AnimatedText.component';
-import { LinkArrow } from './components/Icons.component';
-import HireMe from './components/HireMe.component';
+import { SectionComponent } from '@/atoms/Section.component';
+import { LinkArrow } from '@/molecules//Icons.component';
+import AnimatedText from '@/organisms/AnimatedText.component';
+import HireMe from '@/organisms/HireMe.component';
+import TransitionEffect from '@/organisms/TransitionEffect.component';
 
 import profilePic from '../../public/images/art/homepage-art-3.png';
 import lightBulb from '../../public/images/miscellaneous_icons_1.svg';
-import TransitionEffect from './components/TransitionEffect';
-
-type ComponentProps = {
-  children: ReactNode[] | ReactNode;
-  className?: string;
-};
-
-export const SectionComponent = ({
-  children,
-  className = '',
-}: ComponentProps) => {
-  return (
-    <div className={`w-full h-full inline-block z-0 p-32 ${className}`}>
-      {children}
-    </div>
-  );
-};
 
 export default function Page() {
   return (
     <>
-      <Head>
-        <title>Minademian.com</title>
-        <meta
-          name="description"
-          content="Minademian.com personal website and portfolio - minademian.com fullstack full-stack engineer software engineer web development frontend engineer backend"
-        ></meta>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <TransitionEffect />
       <main className="flex items-center bg-light dark:bg-dark dark:text-light w-full min-h-screen text-dark 2xs:w-full 2xs:p-1">
         <SectionComponent className="pt-0 md:p-16 sm:pt-8 2xs:p-0">
