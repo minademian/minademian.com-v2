@@ -3,7 +3,7 @@
 import React, { useRef, MouseEventHandler } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
-import StaticImageData from 'next/image';
+import { StaticImageData } from 'next/image';
 import Link from 'next/link';
 
 import { motion, useMotionValue } from 'framer-motion';
@@ -58,7 +58,7 @@ export default function ArticlesPage() {
 
 type FeaturedArticleProps = {
   title: string;
-  img: typeof StaticImageData;
+  img: StaticImageData;
   link: string;
   time: string;
   summary: string;
