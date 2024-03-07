@@ -23,7 +23,7 @@ export default function About() {
       <main className="flex w-full flex-col items-center justify-center bg-light dark:bg-dark dark:text-light 2xs:w-full 2xs:p-0">
         <SectionComponent className="pt-16 2xs:p-2 2xs:mt-2">
           <AnimatedText
-            text="Passionate About Products"
+            text="Products, Not Code"
             className="mb-16 lg:!text-7xl sm:!text-6xl xs:!text-4xl sm:mb-8 2xs:!text-3xl 2xs:p-0 2xs:mb-8"
           />
           <div className="grid w-full grid-cols-8 gap-16 2xs:gap-19 2xs:p-0">
