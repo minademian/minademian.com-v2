@@ -1,13 +1,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import StaticImageData from 'next/image';
+import { StaticImageData } from 'next/image';
 import { GitHubIcon } from '@/molecules//Icons.component';
 
 type ProjectProps = {
   type: string;
   title: string;
   summary: string;
-  img: typeof StaticImageData;
+  img: StaticImageData;
   link: string | URL;
   github?: string | null;
 };
