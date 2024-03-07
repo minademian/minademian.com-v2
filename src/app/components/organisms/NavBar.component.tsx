@@ -1,10 +1,14 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import React, { useState, FC, ReactElement, ReactNode } from 'react';
+import React, { useState } from 'react';
 
 import { motion } from 'framer-motion';
+
+import NavLink from '../molecules/NavLink.component';
+import MotionLink from '../molecules/MotionLink.component';
+import MobileNavLink from '../molecules/MobileNavLink.component';
+
+import useThemeSwitcher from '../../hooks/useThemeSwitcher';
 
 import Logo from './Logo.component';
 import {
@@ -13,8 +17,7 @@ import {
   LinkedInComponent,
   SunIcon,
   MoonIcon,
-} from './Icons.component';
-import useThemeSwitcher from './hooks/useThemeSwitcher';
+} from '../molecules/Icons.component';
 
 const NavBar = () => {
   const [mode, setMode] = useThemeSwitcher();
@@ -152,96 +155,3 @@ const NavBar = () => {
 };
 
 export default NavBar;
-
-type NavLinkProps = {
-  href: URL | string;
-  title?: string;
-  className?: string;
-};
-
-type MobileNavLinkProps = NavLinkProps & { toggle: Function };
-
-const NavLink: FC<NavLinkProps> = ({
-  href,
-  title,
-  className = '',
-}: NavLinkProps): ReactElement => {
-  const pathName = usePathname();
-
-  return (
-    <Link href={href} className={`${className} relative group`}>
-      {title}
-      <span
-        className={`
-        h-[1px] inline-block bg-dark
-        absolute left-0 -bottom-0.5 
-        group-hover:w-full transition-[width] ease duration-300
-        ${pathName === href ? 'w-full' : 'w-0'}
-        dark:bg-light
-        `}
-      >
-        &nbsp;
-      </span>
-    </Link>
-  );
-};
-
-const MobileNavLink: FC<MobileNavLinkProps> = ({
-  href,
-  title,
-  className = '',
-  toggle,
-}: MobileNavLinkProps): ReactElement => {
-  const pathName = usePathname();
-  const router = useRouter();
-
-  const handleClick = () => {
-    toggle();
-    router.push(href as string);
-  };
-
-  return (
-    <button
-      ref={href as string}
-      className={`${className} relative group my-2 text-light dark:text-dark`}
-      onClick={handleClick}
-    >
-      {title}
-      <span
-        className={`
-        h-[1px] inline-block bg-light
-        absolute left-0 -bottom-0.5 
-        group-hover:w-full transition-[width] ease duration-300
-        ${pathName === href ? 'w-full' : 'w-0'}
-        dark:bg-dark
-        `}
-      >
-        &nbsp;
-      </span>
-    </button>
-  );
-};
-
-type MotionLinkProps = {
-  href: string | undefined;
-  className?: string;
-  children: ReactNode;
-};
-
-const MotionLink: FC<MotionLinkProps> = ({
-  href,
-  className = '',
-  children,
-}: MotionLinkProps) => {
-  return (
-    <motion.a
-      href={href}
-      target={'_blank'}
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.9 }}
-      className={`${className} w-6 mr-3 sm:mx-1`}
-    >
-      {children}
-    </motion.a>
-  );
-};

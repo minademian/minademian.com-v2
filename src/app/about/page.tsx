@@ -1,26 +1,24 @@
 import React from 'react';
-import Head from 'next/head';
 import Image from 'next/image';
 
-import AnimatedText from '@/app/components/AnimatedText.component';
-import { SectionComponent } from '@/app/page';
+import AnimatedText from '@/organisms/AnimatedText.component';
+import { SectionComponent } from '@/atoms/Section.component';
 
 import profilePhoto from '../../../public/images/developer_pic.jpg';
-import Skills from '../components/Skills.component';
-import Experience from '../components/Experience.component';
-import Studies from '../components/Studies.component';
-import TransitionEffect from '../components/TransitionEffect';
+import Skills from '@/organisms/Skills.component';
+import Experience from '@/organisms/Experience.component';
+import Studies from '@/organisms/Studies.component';
+import TransitionEffect from '@/organisms/TransitionEffect.component';
+
+export const metadata = {
+  title: 'minademian.com | About',
+  description:
+    'about Mina Demian - minademian.com fullstack full-stack engineer software engineer web development frontend engineer backend',
+};
 
 export default function About() {
   return (
     <>
-      <Head>
-        <title>minademian.com | About</title>
-        <meta
-          name="description"
-          content="about Mina Demian - minademian.com fullstack full-stack engineer software engineer web development frontend engineer backend"
-        />
-      </Head>
       <TransitionEffect />
       <main className="flex w-full flex-col items-center justify-center bg-light dark:bg-dark dark:text-light 2xs:w-full 2xs:p-0">
         <SectionComponent className="pt-16 2xs:p-2 2xs:mt-2">
