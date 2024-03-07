@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, MouseEventHandler } from 'react';
+import Head from 'next/head';
 import Image from 'next/image';
 import StaticImageData from 'next/image';
 import Link from 'next/link';
@@ -16,7 +17,7 @@ import TransitionEffect from '@/organisms/TransitionEffect.component';
 
 const FramerImage = motion(Image);
 
-export default function Articles() {
+export default function ArticlesPage() {
   return (
     <>
       <TransitionEffect />
@@ -44,6 +45,13 @@ export default function Articles() {
           </ul>
         </SectionComponent>
       </main>
+      <Head>
+        <title>minademian.com | Articles</title>
+        <meta
+          name="description"
+          content="articles Mina Demian - minademian.com fullstack engineer software engineer web development frontend engineer backend"
+        />
+      </Head>
     </>
   );
 }

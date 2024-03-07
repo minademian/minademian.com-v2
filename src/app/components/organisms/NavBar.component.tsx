@@ -4,9 +4,11 @@ import React, { useState } from 'react';
 
 import { motion } from 'framer-motion';
 
-import NavLink from './NavLink.component';
-import MotionLink from './MotionLink.component';
-import MobileNavLink from './MobileNavLink.component';
+import NavLink from '../molecules/NavLink.component';
+import MotionLink from '../molecules/MotionLink.component';
+import MobileNavLink from '../molecules/MobileNavLink.component';
+
+import useThemeSwitcher from '../../hooks/useThemeSwitcher';
 
 import Logo from './Logo.component';
 import {
@@ -15,8 +17,7 @@ import {
   LinkedInComponent,
   SunIcon,
   MoonIcon,
-} from './Icons.component';
-import useThemeSwitcher from './hooks/useThemeSwitcher';
+} from '../molecules/Icons.component';
 
 const NavBar = () => {
   const [mode, setMode] = useThemeSwitcher();

@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 
-import { HireMeIcon } from './Icons.component';
+import { HireMeIcon } from '../molecules/Icons.component';
 
 const HireMe = ({ className }: { className: string }) => {
   return (
