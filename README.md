@@ -1,15 +1,53 @@
-# NEW: minademian.com
+# minademian.com
 
 This is [minademian.com](https://minademian.com/) bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Changelog
-### v2.0
-- [x] darkmode
-- [x] responsive, mobile-first
+For detailed project history and changes, see [CHANGELOG.md](./CHANGELOG.md).
+
+## CI/CD Pipeline
+
+This project uses GitHub Actions for automated testing and deployment:
+
+### Workflows
+
+#### Feature Branch Testing (`feature-branch.yml`)
+
+- **Triggers**: Pushes to branches matching patterns:
+  - `feat/*`, `fix/*`, `chore/*`, `refactor/*`
+  - `docs/*`, `test/*`, `style/*`, `perf/*`
+- **Actions**:
+  - Checkout code
+  - Setup Node.js 18
+  - Install dependencies with pnpm
+  - Build the project
+
+#### Production Deployment (`release.yml`)
+
+- **Triggers**: Pushes to `main` branch
+- **Actions**:
+  - Checkout code
+  - Setup Node.js 18
+  - Install dependencies with pnpm
+  - Build the project
+  - Deploy via SFTP to production server
+
+### Required Secrets
+
+For deployment to work, configure these GitHub repository secrets:
+
+- `SFTP_HOST`: Your production server hostname
+- `SFTP_USERNAME`: SFTP username for deployment
+- `SFTP_PASSWORD`: SFTP password for deployment
+
+### Branch Strategy
+
+1. Create feature branches using the supported prefixes (`feat/`, `fix/`, etc.)
+2. Push changes trigger automated testing
+3. Merge to `main` triggers production deployment
 
 ## Backlog
 
-- [ ] CI/CD + GitHub Actions + deploy from cli
+- [x] CI/CD + GitHub Actions + deploy from cli
 
 ## Getting Started
 
