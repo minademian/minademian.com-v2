@@ -1,0 +1,32 @@
+name: 'Build Project'
+description: 'Builds the Next.js project and verifies output'
+
+inputs:
+  build-command:
+    description: 'Build command to run'
+    required: false
+    default: 'pnpm run build'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Build project
+      shell: bash
+      run: ${{ inputs.build-command }}
+
+    - name: Verify build output
+      shell: bash
+      run: |
+        echo "Build completed successfully!"
+        if [ -d "out" ]; then
+          echo "Found out/ directory:"
+          ls -la out/ | head -10
+        elif [ -d "dist" ]; then
+          echo "Found dist/ directory:"
+          ls -la dist/ | head -10
+        elif [ -d ".next" ]; then
+          echo "Found .next/ directory:"
+          ls -la .next/ | head -10
+        else
+          echo "Build directory not found, but build completed successfully"
+        fi

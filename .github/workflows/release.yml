@@ -3,35 +3,139 @@ name: Deploy minademian.com
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: true
+        default: "test"
+        type: choice
+        options:
+          - test
+          - prod
+      deploy_target:
+        description: "Deployment target directory"
+        required: true
+        default: "/public_html/test/"
+        type: choice
+        options:
+          - "/public_html/"
+          - "/public_html/test/"
+          - "/public_html/staging/"
+          - "/public_html/dev/"
+          - "/public_html/preview/"
 
 jobs:
-  deploy:
+  validate:
+    name: Pre-build Validation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Run linting
+        run: pnpm run lint
+
+      - name: Run type checking
+        run: pnpm tsc --noEmit
+
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Build and verify
+        uses: ./.github/actions/build-project
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
         with:
-          node-version: 18
+          name: build-files
+          path: out/
+          retention-days: 1
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+  configure:
+    name: Configure Deployment
+    runs-on: ubuntu-latest
+    needs: build
+    outputs:
+      deploy-env: ${{ steps.config.outputs.deploy-env }}
+      deploy-target: ${{ steps.config.outputs.deploy-target }}
+      deploy-url: ${{ steps.config.outputs.deploy-url }}
+    steps:
+      - name: Determine deployment configuration
+        id: config
+        run: |
+          # Set defaults
+          DEPLOY_ENV="prod"
+          DEPLOY_TARGET="/public_html/"
+
+          # Override if workflow_dispatch
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            DEPLOY_ENV="${{ github.event.inputs.environment }}"
+            DEPLOY_TARGET="${{ github.event.inputs.deploy_target }}"
+          fi
+
+          # Extract subdirectory for URL construction
+          TARGET_PATH=$(echo "$DEPLOY_TARGET" | sed 's|^/public_html/||' | sed 's|/$||')
+
+          if [ -z "$TARGET_PATH" ] || [ "$TARGET_PATH" = "public_html" ]; then
+            DEPLOY_URL="https://minademian.com"
+          else
+            DEPLOY_URL="https://minademian.com/$TARGET_PATH/"
+          fi
+
+          # Set outputs
+          echo "deploy-env=$DEPLOY_ENV" >> $GITHUB_OUTPUT
+          echo "deploy-target=$DEPLOY_TARGET" >> $GITHUB_OUTPUT
+          echo "deploy-url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+          # Log configuration
+          echo "Deployment Environment: $DEPLOY_ENV"
+          echo "Deployment Target: $DEPLOY_TARGET"
+          echo "Deployment URL: $DEPLOY_URL"
+
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: configure
+    env:
+      DEPLOY_ENV: ${{ needs.configure.outputs.deploy-env }}
+      DEPLOY_TARGET: ${{ needs.configure.outputs.deploy-target }}
+      DEPLOY_URL: ${{ needs.configure.outputs.deploy-url }}
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
         with:
-          version: 8
+          name: build-files
+          path: out/
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Prepare deployment package
+        run: |
+          echo "Preparing files for deployment to ${{ env.DEPLOY_ENV }} environment..."
+          echo "Target directory: ${{ env.DEPLOY_TARGET }}"
+          find ./out -type f -name "*.html" | head -5
+          echo "Deployment package ready for ${{ env.DEPLOY_ENV }}!"
 
-      - name: Build project
-        run: pnpm build
-
-      - name: Upload via SFTP
+      - name: Deploy via SFTP
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SFTP_HOST }}
           username: ${{ secrets.SFTP_USERNAME }}
           password: ${{ secrets.SFTP_PASSWORD }}
           source: "./out/"
-          target: "/public_html/"
+          target: ${{ env.DEPLOY_TARGET }}
+
+      - name: Deployment completed
+        run: |
+          echo "🚀 Deployment to ${{ env.DEPLOY_ENV }} completed successfully!"
+          echo "Website should be live at: ${{ env.DEPLOY_URL }}"
