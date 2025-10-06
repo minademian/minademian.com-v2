@@ -1,0 +1,31 @@
+name: Test Feature Branch
+
+on:
+  push:
+    branches:
+      - "feat/*"
+      - "fix/*"
+      - "chore/*"
+      - "refactor/*"
+      - "docs/*"
+      - "test/*"
+      - "style/*"
+      - "perf/*"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build project
+        run: pnpm build
