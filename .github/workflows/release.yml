@@ -40,7 +40,10 @@ jobs:
         run: pnpm run lint
 
       - name: Run type checking
-        run: pnpm tsc --noEmit
+        run: |
+          echo "Running TypeScript type checking with production config..."
+          NODE_ENV=production pnpm tsc --project tsconfig.production.json --noEmit
+          echo "TypeScript check completed successfully"
 
   build:
     name: Build Project

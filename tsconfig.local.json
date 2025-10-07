@@ -1,0 +1,69 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "esnext"
+        ],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "noEmit": true,
+        "esModuleInterop": true,
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "jsx": "preserve",
+        "incremental": true,
+        "plugins": [
+            {
+                "name": "next"
+            }
+        ],
+        "paths": {
+            "@/app/*": [
+                "src/app/*"
+            ],
+            "@/styles/*": [
+                "src/app/styles/*"
+            ],
+            "@/components/*": [
+                "src/app/components/*"
+            ],
+            "@/atoms/*": [
+                "src/app/components/atoms/*"
+            ],
+            "@/molecules/*": [
+                "src/app/components/molecules/*"
+            ],
+            "@/organisms/*": [
+                "src/app/components/organisms/*"
+            ],
+            "@/pages/*": [
+                "src/app/components/pages/*"
+            ],
+            "@/templates/*": [
+                "src/app/components/templates/*"
+            ],
+            "@/types/*": [
+                "src/app/types/*"
+            ],
+            "@/public/*": [
+                "public/*"
+            ]
+        }
+    },
+    "include": [
+        "next-env.d.ts",
+        "**/*.ts",
+        "**/*.tsx",
+        ".next/types/**/*.ts",
+        "src/types/**/*.d.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "v2.0"
+    ]
+}

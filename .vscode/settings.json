@@ -1,6 +1,83 @@
 {
     "DockerRun.DisableAutoGenerateConfig": true,
-    "editor.formatOnSave": true,
-    "editor.formatOnPaste": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false,
+    "editor.defaultFormatter": null,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "never",
+        "source.fixAll": "never",
+        "source.organizeImports": "explicit",
+        "source.addMissingImports": "explicit"
+    },
+    
+    // Import sorting configuration
+    "importSorter.generalConfiguration.sortOnBeforeSave": true,
+    "importSorter.importStringConfiguration.maximumNumberOfImportExpressionsPerLine.count": 120,
+    "importSorter.importStringConfiguration.tabSize": 2,
+    
+    // Auto-import and suggestion settings
+    "typescript.suggest.autoImports": true,
+    "javascript.suggest.autoImports": true,
+    "typescript.preferences.includePackageJsonAutoImports": true,
+    "javascript.preferences.includePackageJsonAutoImports": true,
+    "typescript.suggest.completeFunctionCalls": true,
+    "javascript.suggest.completeFunctionCalls": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    
+    // Quick fix and code actions
+    "editor.lightBulb.enabled": "on",
+    "editor.quickSuggestions": {
+        "other": "on",
+        "comments": "off",
+        "strings": "off"
+    },
+    "editor.quickSuggestionsDelay": 10,
+    
+    // Auto Import extension settings
+    "autoimport.filesToScan": "**/*.{ts,tsx,js,jsx}",
+    "autoimport.showNotifications": true,
+    "autoimport.doubleQuotes": false,
+    "autoimport.spaceBetweenBraces": true,
+    "eslint.format.enable": false,
+    
+    // Override global Prettier settings for this workspace
+    "[typescript]": {
+        "editor.defaultFormatter": null,
+        "editor.formatOnSave": false
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": null,
+        "editor.formatOnSave": false
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": null,
+        "editor.formatOnSave": false
+    },
+    "[javascriptreact]": {
+        "editor.defaultFormatter": null,
+        "editor.formatOnSave": false
+    },
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact"
+    ],
+    "eslint.run": "onType",
+    "eslint.alwaysShowStatus": true,
+    "eslint.workingDirectories": [
+        {
+            "mode": "auto"
+        }
+    ],
+    "eslint.enable": true,
+    "eslint.options": {
+        "extensions": [
+            ".js",
+            ".jsx",
+            ".ts",
+            ".tsx"
+        ]
+    }
 }

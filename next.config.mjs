@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 
-import { dir } from 'console';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
