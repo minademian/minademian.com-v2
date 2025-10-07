@@ -1,14 +1,13 @@
-import React from 'react';
 import Image from 'next/image';
 
-import AnimatedText from '@/organisms/AnimatedText.component';
 import { SectionComponent } from '@/atoms/Section.component';
+import AnimatedText from '@/organisms/AnimatedText.component';
 
-import profilePhoto from '@/public/images/developer_pic.jpg';
-import Skills from '@/organisms/Skills.component';
 import Experience from '@/organisms/Experience.component';
+import Skills from '@/organisms/Skills.component';
 import Studies from '@/organisms/Studies.component';
 import TransitionEffect from '@/organisms/TransitionEffect.component';
+import profilePhoto from '@/public/images/developer_pic.jpg';
 
 export const metadata = {
   title: 'minademian.com | About',

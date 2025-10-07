@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 
 import { SectionComponent } from '@/atoms/Section.component';
 import AnimatedText from '@/organisms/AnimatedText.component';

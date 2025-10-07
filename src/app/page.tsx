@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { SectionComponent } from '@/atoms/Section.component';
 import { LinkArrow } from '@/molecules//Icons.component';
