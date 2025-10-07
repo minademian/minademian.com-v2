@@ -83,6 +83,9 @@ jobs:
 
       - name: Build and verify
         uses: ./.github/actions/build-project
+        with:
+          deployment-type: 'sandbox'
+          branch-name: ${{ github.head_ref || github.ref_name }}
 
       - name: Verify build output exists
         run: |

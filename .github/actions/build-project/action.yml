@@ -6,13 +6,35 @@ inputs:
     description: 'Build command to run'
     required: false
     default: 'pnpm run build'
+  deployment-type:
+    description: 'Type of deployment (sandbox, release, production)'
+    required: false
+    default: 'production'
+  branch-name:
+    description: 'Branch name for sandbox deployments'
+    required: false
+    default: ''
+  git-tag:
+    description: 'Git tag for release deployments'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
   steps:
     - name: Build project
       shell: bash
-      run: ${{ inputs.build-command }}
+      env:
+        DEPLOYMENT_TYPE: ${{ inputs.deployment-type }}
+        BRANCH_NAME: ${{ inputs.branch-name }}
+        GIT_TAG: ${{ inputs.git-tag }}
+      run: |
+        echo "🏗️  Building with deployment context:"
+        echo "   Type: $DEPLOYMENT_TYPE"
+        echo "   Branch: $BRANCH_NAME"
+        echo "   Tag: $GIT_TAG"
+        
+        ${{ inputs.build-command }}
 
     - name: Verify build output
       shell: bash
