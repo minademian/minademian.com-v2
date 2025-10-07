@@ -65,6 +65,16 @@ runs:
         echo "Event: ${{ inputs.event-name }}"
         echo "Ref: ${{ inputs.ref }}"
         
+        # Validate required secrets
+        echo "🔐 Validating deployment configuration..."
+        if [ -z "${{ inputs.base-path }}" ]; then
+          echo "❌ ERROR: DEPLOY_BASE_PATH secret is not set or is empty!"
+          echo "Please set the DEPLOY_BASE_PATH secret in your repository settings."
+          echo "Expected format: /home/username/domain.com"
+          exit 1
+        fi
+        echo "✅ Base path configured: ${{ inputs.base-path }}"
+        
         # Initialize variables
         DEPLOYMENT_TYPE=""
         TARGET_PATH=""
@@ -88,19 +98,19 @@ runs:
             
             if [ -n "$GIT_TAG" ]; then
               DEPLOYMENT_TYPE="release"
-              TARGET_PATH="${{ inputs.base-path }}/releases/$GIT_TAG/"
+              TARGET_PATH="releases/$GIT_TAG/"
               DEPLOYMENT_URL="https://minademian.com/releases/$GIT_TAG/"
               ENVIRONMENT_NAME="release-$GIT_TAG"
               echo "🏷️  Tag-based deployment: $GIT_TAG"
             elif [ "${{ inputs.event-name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.manual-target }}" ]; then
               DEPLOYMENT_TYPE="production"
-              TARGET_PATH="${{ inputs.base-path }}/${{ inputs.manual-target }}"
+              TARGET_PATH="${{ inputs.manual-target }}"
               ENVIRONMENT_NAME="${{ inputs.manual-environment }}"
               echo "📋 Manual deployment override"
             else
               # Fallback to production (via latest symlink)
               DEPLOYMENT_TYPE="production"
-              TARGET_PATH="${{ inputs.base-path }}/latest/"
+              TARGET_PATH="latest/"
               DEPLOYMENT_URL="https://minademian.com/latest/"
               ENVIRONMENT_NAME="production"
               echo "🏠 Fallback to production deployment"
@@ -123,7 +133,7 @@ runs:
             SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9.-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
             
             DEPLOYMENT_TYPE="sandbox"
-            TARGET_PATH="${{ inputs.base-path }}/sandbox/$SANITIZED_BRANCH/"
+            TARGET_PATH="sandbox/$SANITIZED_BRANCH/"
             DEPLOYMENT_URL="https://minademian.com/sandbox/$SANITIZED_BRANCH/"
             ENVIRONMENT_NAME="sandbox-$SANITIZED_BRANCH"
             BRANCH_NAME="$SANITIZED_BRANCH"
@@ -135,11 +145,11 @@ runs:
             echo "🏠 Configuring production deployment..."
             
             if [ "${{ inputs.event-name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.manual-target }}" ]; then
-              TARGET_PATH="${{ inputs.base-path }}/${{ inputs.manual-target }}"
+              TARGET_PATH="${{ inputs.manual-target }}"
               ENVIRONMENT_NAME="${{ inputs.manual-environment }}"
               echo "📋 Manual production deployment"
             else
-              TARGET_PATH="${{ inputs.base-path }}/latest/"
+              TARGET_PATH="latest/"
               ENVIRONMENT_NAME="production"
             fi
             

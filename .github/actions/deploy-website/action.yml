@@ -102,7 +102,7 @@ runs:
         username: ${{ inputs.sftp-username }}
         password: ${{ inputs.sftp-password }}
         source: "out/*"
-        target: ${{ inputs.target-path }}
+        target: ${{ inputs.base-path }}/${{ inputs.target-path }}
         debug: true
 
     - name: Update latest symlink (for release deployments)
