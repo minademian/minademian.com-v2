@@ -103,8 +103,29 @@ runs:
         password: ${{ inputs.sftp-password }}
         script: |
           cd /
-          rm -f latest
+          echo "Current directory: $(pwd)"
+          echo "Contents before symlink update:"
+          ls -la | grep -E "(latest|releases)"
+          
+          # Remove existing latest (whether file, directory, or symlink)
+          if [ -L latest ]; then
+            echo "Removing existing symlink"
+            rm -f latest
+          elif [ -d latest ]; then
+            echo "Removing existing directory"
+            rm -rf latest
+          elif [ -f latest ]; then
+            echo "Removing existing file"
+            rm -f latest
+          fi
+          
+          # Create new symlink
           ln -sf releases/${{ inputs.git-tag }} latest
+          
+          echo "Contents after symlink update:"
+          ls -la | grep -E "(latest|releases)"
+          echo "Symlink verification:"
+          ls -la latest
           echo "Updated symlink: latest -> releases/${{ inputs.git-tag }}"
 
     - name: Deployment summary
