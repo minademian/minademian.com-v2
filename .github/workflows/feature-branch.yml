@@ -78,7 +78,7 @@ jobs:
         uses: ./.github/actions/build-project
 
       - name: Upload build artifacts for sandbox
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sandbox-build-files
           path: out/
