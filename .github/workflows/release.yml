@@ -142,6 +142,11 @@ jobs:
               fi
               SHOULD_CREATE="true"
               echo "Release type found in PR text: $RELEASE_TYPE"
+            else
+              # Default to major release for merged PRs without explicit version type
+              RELEASE_TYPE="major"
+              SHOULD_CREATE="true"
+              echo "No release type specified - defaulting to major release"
             fi
           fi
           
