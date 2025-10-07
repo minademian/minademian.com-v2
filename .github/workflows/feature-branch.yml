@@ -11,6 +11,15 @@ on:
       - "test/*"
       - "style/*"
       - "perf/*"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        description: 'Branch name for sandbox deployment'
+        required: true
+        default: ''
 
 jobs:
   install:
@@ -67,3 +76,81 @@ jobs:
 
       - name: Build and verify
         uses: ./.github/actions/build-project
+
+      - name: Upload build artifacts for sandbox
+        uses: actions/upload-artifact@v3
+        with:
+          name: sandbox-build-files
+          path: out/
+          retention-days: 3
+
+  configure-sandbox:
+    name: Configure Sandbox Deployment
+    runs-on: ubuntu-latest
+    needs: build
+    if: always() && needs.build.result == 'success'
+    outputs:
+      deployment-type: ${{ steps.config.outputs.deployment-type }}
+      target-path: ${{ steps.config.outputs.target-path }}
+      deployment-url: ${{ steps.config.outputs.deployment-url }}
+      branch-name: ${{ steps.config.outputs.branch-name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure sandbox deployment
+        id: config
+        uses: ./.github/actions/configure-deployment
+        with:
+          event-name: ${{ github.event_name }}
+          ref: ${{ github.ref }}
+          ref-name: ${{ github.ref_name }}
+          branch-name: ${{ github.head_ref || github.ref_name || github.event.inputs.branch_name }}
+          deployment-context: 'sandbox'
+
+  deploy-sandbox:
+    name: Deploy to Sandbox
+    runs-on: ubuntu-latest
+    needs: [build, configure-sandbox]
+    if: always() && needs.build.result == 'success' && needs.configure-sandbox.result == 'success'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to sandbox
+        uses: ./.github/actions/deploy-website
+        with:
+          deployment-type: ${{ needs.configure-sandbox.outputs.deployment-type }}
+          target-path: ${{ needs.configure-sandbox.outputs.target-path }}
+          branch-name: ${{ needs.configure-sandbox.outputs.branch-name }}
+          build-artifact-name: 'sandbox-build-files'
+          sftp-host: ${{ secrets.SFTP_HOST }}
+          sftp-username: ${{ secrets.SFTP_USERNAME }}
+          sftp-password: ${{ secrets.SFTP_PASSWORD }}
+
+      - name: Comment on PR with preview link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const previewUrl = '${{ needs.configure-sandbox.outputs.deployment-url }}';
+            const branchName = '${{ needs.configure-sandbox.outputs.branch-name }}';
+            
+            const comment = `## 🔍 Feature Branch Preview
+            
+            Your changes have been deployed to the sandbox environment!
+            
+            **Preview URL:** ${previewUrl}
+            **Branch:** \`${branchName}\`
+            **Commit:** \`${{ github.event.pull_request.head.sha }}\`
+            
+            This preview will be updated automatically when you push new commits to this PR.
+            
+            > **Note:** The sandbox deployment is for preview purposes only and may be cleaned up periodically.`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

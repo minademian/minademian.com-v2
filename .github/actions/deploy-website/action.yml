@@ -1,0 +1,130 @@
+name: 'Deploy Website'
+description: 'Deploy built website to remote server via SFTP'
+inputs:
+  deployment-type:
+    description: 'Type of deployment (production, sandbox, release)'
+    required: true
+  target-path:
+    description: 'Target deployment path on server'
+    required: true
+  branch-name:
+    description: 'Branch name (for sandbox deployments)'
+    required: false
+    default: ''
+  git-tag:
+    description: 'Git tag (for release deployments)'
+    required: false
+    default: ''
+  build-artifact-name:
+    description: 'Name of the build artifact to deploy'
+    required: true
+    default: 'build-files'
+  sftp-host:
+    description: 'SFTP host'
+    required: true
+  sftp-username:
+    description: 'SFTP username'
+    required: true
+  sftp-password:
+    description: 'SFTP password'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ inputs.build-artifact-name }}
+        path: out/
+
+    - name: Prepare deployment
+      shell: bash
+      run: |
+        echo "🚀 Starting website deployment..."
+        echo ""
+        echo "📋 Deployment Configuration:"
+        echo "   🎯 Type: ${{ inputs.deployment-type }}"
+        echo "   📁 Target: ${{ inputs.target-path }}"
+        echo "   🌐 Host: ${{ inputs.sftp-host }}"
+        echo "   👤 User: ${{ inputs.sftp-username }}"
+        
+        if [ -n "${{ inputs.branch-name }}" ]; then
+          echo "   🌿 Branch: ${{ inputs.branch-name }}"
+        fi
+        
+        if [ -n "${{ inputs.git-tag }}" ]; then
+          echo "   🔖 Git Tag: ${{ inputs.git-tag }}"
+        fi
+        
+        echo ""
+        echo "📦 Build artifact verification:"
+        echo "   📁 Artifact: ${{ inputs.build-artifact-name }}"
+        HTML_COUNT=$(find ./out -type f -name "*.html" | wc -l)
+        TOTAL_COUNT=$(find ./out -type f | wc -l)
+        echo "   📄 HTML files: $HTML_COUNT"
+        echo "   📄 Total files: $TOTAL_COUNT"
+        
+        if [ "$TOTAL_COUNT" -eq 0 ]; then
+          echo "❌ No files found in build artifact!"
+          exit 1
+        fi
+        
+        echo ""
+        echo "📁 Sample files to deploy:"
+        find ./out -type f -name "*.html" | head -3
+
+    - name: Create remote directory
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ inputs.sftp-host }}
+        username: ${{ inputs.sftp-username }}
+        password: ${{ inputs.sftp-password }}
+        script: |
+          echo "Creating directory: ${{ inputs.target-path }}"
+          mkdir -p "${{ inputs.target-path }}"
+          echo "Directory ready: ${{ inputs.target-path }}"
+
+    - name: Deploy via SFTP
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ inputs.sftp-host }}
+        username: ${{ inputs.sftp-username }}
+        password: ${{ inputs.sftp-password }}
+        source: "./out/"
+        target: ${{ inputs.target-path }}
+
+    - name: Update latest symlink (for release deployments)
+      if: inputs.deployment-type == 'release' && inputs.git-tag != ''
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ inputs.sftp-host }}
+        username: ${{ inputs.sftp-username }}
+        password: ${{ inputs.sftp-password }}
+        script: |
+          cd /
+          rm -f latest
+          ln -sf releases/${{ inputs.git-tag }} latest
+          echo "Updated symlink: latest -> releases/${{ inputs.git-tag }}"
+
+    - name: Deployment summary
+      shell: bash
+      run: |
+        echo "✅ Deployment completed successfully!"
+        echo "📁 Target: ${{ inputs.target-path }}"
+        
+        case "${{ inputs.deployment-type }}" in
+          "production")
+            echo "🌐 Production URL: https://minademian.com/latest/"
+            ;;
+          "release")
+            echo "🏷️  Release: ${{ inputs.git-tag }}"
+            echo "🌐 Release URL: https://minademian.com/releases/${{ inputs.git-tag }}/"
+            echo "🔗 Latest URL: https://minademian.com/latest/ (symlink updated)"
+            ;;
+          "sandbox")
+            SANITIZED_BRANCH=$(echo "${{ inputs.branch-name }}" | sed 's/[^a-zA-Z0-9.-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+            echo "🌿 Branch: ${{ inputs.branch-name }}"
+            echo "🌐 Sandbox URL: https://minademian.com/sandbox/$SANITIZED_BRANCH/"
+            ;;
+        esac
