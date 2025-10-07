@@ -68,6 +68,21 @@ jobs:
       - name: Build and verify
         uses: ./.github/actions/build-project
 
+      - name: Verify build output exists
+        run: |
+          echo "Checking for build output..."
+          if [ -d "out" ]; then
+            echo "✅ out/ directory found"
+            echo "Contents:"
+            ls -la out/ | head -5
+            echo "Total files: $(find out -type f | wc -l)"
+          else
+            echo "❌ out/ directory not found!"
+            echo "Available directories:"
+            ls -la
+            exit 1
+          fi
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
