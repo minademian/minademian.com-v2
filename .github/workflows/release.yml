@@ -63,6 +63,8 @@ jobs:
 
       - name: Build and verify
         uses: ./.github/actions/build-project
+        with:
+          deployment-type: 'production'
 
       - name: Verify build output exists
         run: |

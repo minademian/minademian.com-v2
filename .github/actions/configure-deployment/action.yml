@@ -134,7 +134,7 @@ runs:
             
             DEPLOYMENT_TYPE="sandbox"
             TARGET_PATH="sandbox/$SANITIZED_BRANCH/"
-            DEPLOYMENT_URL="https://minademian.com/sandbox/$SANITIZED_BRANCH/"
+            DEPLOYMENT_URL="https://sandbox.minademian.com/$SANITIZED_BRANCH/"
             ENVIRONMENT_NAME="sandbox-$SANITIZED_BRANCH"
             BRANCH_NAME="$SANITIZED_BRANCH"
             
