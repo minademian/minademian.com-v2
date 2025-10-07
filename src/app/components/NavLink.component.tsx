@@ -1,6 +1,7 @@
-import React, { FC, useRef, ReactElement } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { FC, ReactElement, useRef } from 'react';
+
 import { NavLinkProps } from '@/types/NavBar.type';
 
 const NavLink: FC<NavLinkProps> = ({

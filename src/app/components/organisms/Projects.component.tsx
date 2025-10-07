@@ -1,6 +1,6 @@
+import Image, { StaticImageData } from 'next/image';
 import Link from 'next/link';
-import Image from 'next/image';
-import { StaticImageData } from 'next/image';
+
 import { GitHubIcon } from '@/molecules//Icons.component';
 
 type ProjectProps = {
@@ -21,6 +21,7 @@ export const Project = ({
   github,
 }: ProjectProps) => {
   return (
+    // eslint-disable-next-line max-len
     <article className="w-full flex flex-col items-center justify-center rounded-2xl border border-solid border-dark bg-light p-6 relative dark:bg-dark dark:border-light dark:text-light">
       <div
         className="absolute top-0 -right-3 -z-10 w-[101%] h-[103%] rounded-[2rem] bg-dark"
@@ -87,6 +88,7 @@ export const FeaturedProject = ({
   github,
 }: ProjectProps) => {
   return (
+    // eslint-disable-next-line max-len
     <article className="w-full flex items-center justify-between 2xs:flex-col relative rounded-br-2xl rounded-3xl border border-solid border-dark bg-light dark:bg-dark dark:border-light shadow-2xl p-12 2xs:p-3">
       <div className="absolute top-0 -right-3 -z-10 w-[101%] h-[103%] rounded-[2rem] bg-dark dark:bg-light" />
       <Link

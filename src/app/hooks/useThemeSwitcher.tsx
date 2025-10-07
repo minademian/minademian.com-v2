@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const useThemeSwitcher = () => {
   const preferDarkMode = '(prefer-color-schem: dark)';
@@ -18,11 +18,11 @@ const useThemeSwitcher = () => {
 
     const handleChange = () => {
       if (userPreference) {
-        let check = userPreference === 'dark' ? 'dark' : 'light';
+        const check = userPreference === 'dark' ? 'dark' : 'light';
         setMode(check);
         addClassToHTML(check);
       } else {
-        let check = mediaQuery.matches ? 'dark' : 'light';
+        const check = mediaQuery.matches ? 'dark' : 'light';
         setMode(check);
         addClassToHTML(check);
       }

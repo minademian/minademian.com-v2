@@ -1,8 +1,7 @@
 'use client';
 
-import React, { FC } from 'react';
-
 import { motion } from 'framer-motion';
+import { FC } from 'react';
 
 import { MotionLinkProps } from '@/types/NavBar.type';
 

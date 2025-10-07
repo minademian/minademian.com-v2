@@ -4,9 +4,9 @@ import { SectionComponent } from '@/atoms/Section.component';
 
 import AnimatedText from '@/organisms/AnimatedText.component';
 
-import newssifter from '../../../public/images/projects/newssifter.png';
-import larportalen from '../../../public/images/projects/larportalen/larportalen-1.png';
-import scania from '../../../public/images/projects/scania/scania.png';
+import newssifter from '@/public/images/projects/newssifter.png';
+import larportalen from '@/public/images/projects/larportalen/larportalen-1.png';
+import scania from '@/public/images/projects/scania/scania.png';
 import { Project } from '@/organisms/Projects.component';
 import TransitionEffect from '@/organisms/TransitionEffect.component';
 

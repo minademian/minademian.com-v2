@@ -1,11 +1,12 @@
-import { motion, useMotionValue } from 'framer-motion';
-import Image from 'next/image';
+import { useMotionValue } from 'framer-motion';
 import Link from 'next/link';
 import { useRef } from 'react';
 
-import { MovingImageProps } from '@/types/Articles.type';
+import { FeaturedArticleProps } from '@/app/types/Articles.type';
 
-const FramerImage = motion(Image);
+import { FramerImage } from '../pages/Articles.page';
+
+type MovingImageProps = Omit<FeaturedArticleProps, 'summary' | 'time'>;
 
 export const MovingImage = ({ title, img, link }: MovingImageProps) => {
   const x = useMotionValue(0);
@@ -15,12 +16,10 @@ export const MovingImage = ({ title, img, link }: MovingImageProps) => {
   function handleMouse(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
     const Y_OFFSET = -10;
     x.set(e.pageX);
-    y.set(Y_OFFSET);
+    y.set(e.pageY + Y_OFFSET);
   }
 
   function handleMouseLeave(
-    // eslint-disable-next-line no-unused-vars
-    _event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
   ) {
     x.set(0);
     y.set(0);

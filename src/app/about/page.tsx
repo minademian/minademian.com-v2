@@ -4,7 +4,7 @@ import Image from 'next/image';
 import AnimatedText from '@/organisms/AnimatedText.component';
 import { SectionComponent } from '@/atoms/Section.component';
 
-import profilePhoto from '../../../public/images/developer_pic.jpg';
+import profilePhoto from '@/public/images/developer_pic.jpg';
 import Skills from '@/organisms/Skills.component';
 import Experience from '@/organisms/Experience.component';
 import Studies from '@/organisms/Studies.component';
