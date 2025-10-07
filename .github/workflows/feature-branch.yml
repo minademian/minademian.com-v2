@@ -21,6 +21,11 @@ on:
         required: true
         default: ''
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 jobs:
   install:
     name: Install Dependencies
