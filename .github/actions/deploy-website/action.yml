@@ -105,6 +105,7 @@ runs:
         target: ${{ inputs.target-path }}
         strip_components: 1
         overwrite: true
+        capture_stdout: true
 
     - name: Update latest symlink (for release deployments)
       if: inputs.deployment-type == 'release' && inputs.git-tag != ''
