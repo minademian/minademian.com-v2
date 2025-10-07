@@ -25,9 +25,7 @@ const getBasePath = () => {
 };
 
 const getAssetPrefix = () => {
-  // For sandbox deployments, use absolute URL with sanitized branch path
   if (process.env.DEPLOYMENT_TYPE === 'sandbox' && process.env.BRANCH_NAME) {
-    // Sanitize branch name to match server directory structure
     const sanitizedBranch = process.env.BRANCH_NAME
       .replace(/[^a-zA-Z0-9.-]/g, '-')  // Replace invalid chars with dash
       .replace(/--+/g, '-')             // Replace multiple dashes with single dash
