@@ -23,9 +23,9 @@ const getBasePath = () => {
 };
 
 const getAssetPrefix = () => {
-  // For sandbox deployments, use relative path so subdomain routing works
+  // For sandbox deployments, use absolute URL with branch path
   if (process.env.DEPLOYMENT_TYPE === 'sandbox' && process.env.BRANCH_NAME) {
-    return './';
+    return `https://sandbox.minademian.com/${process.env.BRANCH_NAME}`;
   }
 
   // For other deployments, use the same as basePath
