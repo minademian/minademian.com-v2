@@ -8,7 +8,6 @@ import { LinkArrow } from '@/molecules//Icons.component';
 import AnimatedText from '@/organisms/AnimatedText.component';
 import HireMe from '@/organisms/HireMe.component';
 import TransitionEffect from '@/organisms/TransitionEffect.component';
-
 import profilePic from '@/public/images/art/homepage-art-3.png';
 import lightBulb from '@/public/images/miscellaneous_icons_1.svg';
 
@@ -16,7 +15,8 @@ export default function Page() {
   return (
     <>
       <TransitionEffect />
-      <main className="flex items-center bg-light dark:bg-dark dark:text-light w-full min-h-screen text-dark 2xs:w-full 2xs:p-1">
+      <main className="flex items-center bg-light dark:bg-dark dark:text-light
+      w-full min-h-screen text-dark 2xs:w-full 2xs:p-1">
         <SectionComponent className="pt-0 md:p-16 sm:pt-8 2xs:p-0">
           <div className="flex items-center justify-between w-full lg:flex-col">
             <div className="w-1/2 md:w-full lg:w-full md:mb-4">
@@ -42,7 +42,7 @@ export default function Page() {
                 <Link
                   href="https://files.minademian.com/MinaDemian-2024-website.pdf"
                   target={'_blank'}
-                  className="flex items-center text-light p-2.5 px-6 rounded-lg text-lg 
+                  className="flex items-center text-light p-2.5 px-6 rounded-lg text-lg
                   font-semibold border-2 border-solid bg-dark
                   border-transparent  dark:bg-light dark:text-dark
                   hover:border-dark hover:bg-light hover:text-dark
