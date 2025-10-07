@@ -25,9 +25,14 @@ const getBasePath = () => {
 };
 
 const getAssetPrefix = () => {
-  // For sandbox deployments, use absolute URL with branch path
+  // For sandbox deployments, use absolute URL with sanitized branch path
   if (process.env.DEPLOYMENT_TYPE === 'sandbox' && process.env.BRANCH_NAME) {
-    return `https://sandbox.minademian.com/${process.env.BRANCH_NAME}`;
+    // Sanitize branch name to match server directory structure
+    const sanitizedBranch = process.env.BRANCH_NAME
+      .replace(/[^a-zA-Z0-9.-]/g, '-')  // Replace invalid chars with dash
+      .replace(/--+/g, '-')             // Replace multiple dashes with single dash
+      .replace(/^-|-$/g, '');           // Remove leading/trailing dashes
+    return `https://sandbox.minademian.com/${sanitizedBranch}`;
   }
 
   // For other deployments, use the same as basePath
