@@ -8,9 +8,9 @@ const __dirname = path.dirname(__filename);
 
 // Determine base path and asset prefix based on deployment environment
 const getBasePath = () => {
-  // For sandbox deployments served from subdomain, no base path needed
+  // For sandbox deployments, use branch name as base path since subdomain serves from /branch-name/
   if (process.env.DEPLOYMENT_TYPE === 'sandbox' && process.env.BRANCH_NAME) {
-    return '';
+    return `/${process.env.BRANCH_NAME}`;
   }
 
   // For release deployments with version tags
@@ -25,7 +25,7 @@ const getBasePath = () => {
 const getAssetPrefix = () => {
   // For sandbox deployments, use relative path so subdomain routing works
   if (process.env.DEPLOYMENT_TYPE === 'sandbox' && process.env.BRANCH_NAME) {
-    return '.';
+    return './';
   }
 
   // For other deployments, use the same as basePath
