@@ -12,12 +12,12 @@ const getBasePath = () => {
   if (process.env.DEPLOYMENT_TYPE === 'sandbox' && process.env.BRANCH_NAME) {
     return `/${process.env.BRANCH_NAME}`;
   }
-  
+
   // For release deployments with version tags
   if (process.env.DEPLOYMENT_TYPE === 'release' && process.env.GIT_TAG) {
     return `/releases/${process.env.GIT_TAG}`;
   }
-  
+
   // For production (latest) and default cases
   return '';
 };
