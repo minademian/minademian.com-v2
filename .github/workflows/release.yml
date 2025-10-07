@@ -1,5 +1,10 @@
 name: Release and Deploy
 
+# Permissions needed for tag creation and repository access
+permissions:
+  contents: write  # Needed to create tags and push to repository
+  pull-requests: read  # Needed to read PR information
+
 on:
   pull_request:
     types: [closed]

@@ -6,9 +6,9 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Determine base path based on deployment environment
+// Determine base path and asset prefix based on deployment environment
 const getBasePath = () => {
-  // For sandbox deployments, use just the branch name as base path (served from subdomain)
+  // For sandbox deployments, use branch name as base path since subdomain serves from /branch-name/
   if (process.env.DEPLOYMENT_TYPE === 'sandbox' && process.env.BRANCH_NAME) {
     return `/${process.env.BRANCH_NAME}`;
   }
@@ -22,6 +22,16 @@ const getBasePath = () => {
   return '';
 };
 
+const getAssetPrefix = () => {
+  // For sandbox deployments, use absolute URL with branch path
+  if (process.env.DEPLOYMENT_TYPE === 'sandbox' && process.env.BRANCH_NAME) {
+    return `https://sandbox.minademian.com/${process.env.BRANCH_NAME}`;
+  }
+
+  // For other deployments, use the same as basePath
+  return getBasePath();
+};
+
 const nextConfig = {
   sassOptions: {
     includePaths: [path.join(__dirname, 'styles')],
@@ -32,6 +42,6 @@ const nextConfig = {
   },
   trailingSlash: true,
   basePath: getBasePath(),
-  assetPrefix: getBasePath(),
+  assetPrefix: getAssetPrefix(),
 };
 export default nextConfig;
