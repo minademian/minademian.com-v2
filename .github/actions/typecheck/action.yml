@@ -1,0 +1,22 @@
+name: 'TypeScript Type Checking'
+description: 'Runs TypeScript type checking with production configuration'
+
+inputs:
+  config-path:
+    description: 'Path to TypeScript configuration file'
+    required: false
+    default: 'tsconfig.production.json'
+  node-env:
+    description: 'Node environment to set'
+    required: false
+    default: 'production'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run TypeScript type checking
+      shell: bash
+      run: |
+        echo "Running TypeScript type checking with ${{ inputs.config-path }}..."
+        NODE_ENV=${{ inputs.node-env }} pnpm tsc --project ${{ inputs.config-path }} --noEmit
+        echo "TypeScript check completed successfully"

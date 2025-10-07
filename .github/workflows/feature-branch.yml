@@ -52,7 +52,7 @@ jobs:
         uses: ./.github/actions/setup-node-pnpm
 
       - name: Run type checking
-        run: pnpm tsc --noEmit
+        uses: ./.github/actions/typecheck
 
   build:
     name: Build Project
