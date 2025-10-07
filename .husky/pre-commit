@@ -1,0 +1,21 @@
+#!/bin/sh
+echo "🔍 Running pre-commit checks..."
+
+echo "  📝 Linting TypeScript/React files..."
+pnpm run lint
+
+if [ $? -ne 0 ]; then
+  echo "❌ Linting failed. Please fix the issues above."
+  exit 1
+fi
+
+echo "  🔧 Running production TypeScript check..."
+pnpm run debug-ci
+
+if [ $? -ne 0 ]; then
+  echo "❌ Production TypeScript check failed. These are the same errors that will appear in CI."
+  echo "💡 Run 'pnpm run debug-ci' to see the full error details."
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"

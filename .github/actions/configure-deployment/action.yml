@@ -1,0 +1,197 @@
+name: 'Configure Deployment'
+description: 'Determine deployment configuration based on trigger context'
+inputs:
+  event-name:
+    description: 'GitHub event name (push, pull_request, workflow_dispatch)'
+    required: true
+  ref:
+    description: 'GitHub ref (refs/heads/main, refs/tags/v1.0.0, etc.)'
+    required: true
+  ref-name:
+    description: 'GitHub ref name (main, v1.0.0, feature-branch, etc.)'
+    required: true
+  branch-name:
+    description: 'Branch name for sandbox deployments'
+    required: false
+    default: ''
+  git-tag:
+    description: 'Git tag from release creation'
+    required: false
+    default: ''
+  manual-environment:
+    description: 'Manual environment override (workflow_dispatch)'
+    required: false
+    default: ''
+  manual-target:
+    description: 'Manual deployment target (workflow_dispatch)'
+    required: false
+    default: ''
+  deployment-context:
+    description: 'Deployment context: release, sandbox, production'
+    required: true
+  base-path:
+    description: 'Base path on server (e.g., /home/username/domain.com)'
+    required: true
+
+outputs:
+  deployment-type:
+    description: 'Type of deployment (production, release, sandbox)'
+    value: ${{ steps.config.outputs.deployment-type }}
+  target-path:
+    description: 'Target deployment path'
+    value: ${{ steps.config.outputs.target-path }}
+  deployment-url:
+    description: 'Final deployment URL'
+    value: ${{ steps.config.outputs.deployment-url }}
+  environment-name:
+    description: 'Environment name for logging'
+    value: ${{ steps.config.outputs.environment-name }}
+  git-tag:
+    description: 'Git tag (if applicable)'
+    value: ${{ steps.config.outputs.git-tag }}
+  branch-name:
+    description: 'Sanitized branch name (if applicable)'
+    value: ${{ steps.config.outputs.branch-name }}
+
+runs:
+  using: composite
+  steps:
+    - name: Configure deployment settings
+      id: config
+      shell: bash
+      run: |
+        echo "🔧 Configuring deployment..."
+        echo "Context: ${{ inputs.deployment-context }}"
+        echo "Event: ${{ inputs.event-name }}"
+        echo "Ref: ${{ inputs.ref }}"
+        
+        # Validate required secrets
+        echo "🔐 Validating deployment configuration..."
+        if [ -z "${{ inputs.base-path }}" ]; then
+          echo "❌ ERROR: DEPLOY_BASE_PATH secret is not set or is empty!"
+          echo "Please set the DEPLOY_BASE_PATH secret in your repository settings."
+          echo "Expected format: /home/username/domain.com"
+          exit 1
+        fi
+        echo "✅ Base path configured: ${{ inputs.base-path }}"
+        
+        # Initialize variables
+        DEPLOYMENT_TYPE=""
+        TARGET_PATH=""
+        DEPLOYMENT_URL=""
+        ENVIRONMENT_NAME=""
+        GIT_TAG=""
+        BRANCH_NAME=""
+        
+        case "${{ inputs.deployment-context }}" in
+          "release")
+            echo "📦 Configuring release deployment..."
+            
+            # Extract git tag
+            if [[ "${{ inputs.ref }}" == refs/tags/* ]]; then
+              GIT_TAG="${{ inputs.ref-name }}"
+              echo "Git tag detected from ref: $GIT_TAG"
+            elif [ -n "${{ inputs.git-tag }}" ]; then
+              GIT_TAG="${{ inputs.git-tag }}"
+              echo "Git tag provided: $GIT_TAG"
+            fi
+            
+            if [ -n "$GIT_TAG" ]; then
+              DEPLOYMENT_TYPE="release"
+              TARGET_PATH="releases/$GIT_TAG/"
+              DEPLOYMENT_URL="https://minademian.com/releases/$GIT_TAG/"
+              ENVIRONMENT_NAME="release-$GIT_TAG"
+              echo "🏷️  Tag-based deployment: $GIT_TAG"
+            elif [ "${{ inputs.event-name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.manual-target }}" ]; then
+              DEPLOYMENT_TYPE="production"
+              TARGET_PATH="${{ inputs.manual-target }}"
+              ENVIRONMENT_NAME="${{ inputs.manual-environment }}"
+              echo "📋 Manual deployment override"
+            else
+              # Fallback to production (via latest symlink)
+              DEPLOYMENT_TYPE="production"
+              TARGET_PATH="latest/"
+              DEPLOYMENT_URL="https://minademian.com/latest/"
+              ENVIRONMENT_NAME="production"
+              echo "🏠 Fallback to production deployment"
+            fi
+            ;;
+            
+          "sandbox")
+            echo "🧪 Configuring sandbox deployment..."
+            
+            # Get branch name from various sources
+            if [ -n "${{ inputs.branch-name }}" ]; then
+              BRANCH_NAME="${{ inputs.branch-name }}"
+            elif [[ "${{ inputs.ref }}" == refs/heads/* ]]; then
+              BRANCH_NAME="${{ inputs.ref-name }}"
+            else
+              BRANCH_NAME="unknown"
+            fi
+            
+            # Sanitize branch name for URL
+            SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9.-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+            
+            DEPLOYMENT_TYPE="sandbox"
+            TARGET_PATH="sandbox/$SANITIZED_BRANCH/"
+            DEPLOYMENT_URL="https://minademian.com/sandbox/$SANITIZED_BRANCH/"
+            ENVIRONMENT_NAME="sandbox-$SANITIZED_BRANCH"
+            BRANCH_NAME="$SANITIZED_BRANCH"
+            
+            echo "🌿 Branch: ${{ inputs.branch-name }} → $SANITIZED_BRANCH"
+            ;;
+            
+          "production")
+            echo "🏠 Configuring production deployment..."
+            
+            if [ "${{ inputs.event-name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.manual-target }}" ]; then
+              TARGET_PATH="${{ inputs.manual-target }}"
+              ENVIRONMENT_NAME="${{ inputs.manual-environment }}"
+              echo "📋 Manual production deployment"
+            else
+              TARGET_PATH="latest/"
+              ENVIRONMENT_NAME="production"
+            fi
+            
+            DEPLOYMENT_TYPE="production"
+            DEPLOYMENT_URL="https://minademian.com/latest/"
+            ;;
+            
+          *)
+            echo "❌ Unknown deployment context: ${{ inputs.deployment-context }}"
+            exit 1
+            ;;
+        esac
+        
+        # Generate deployment URL if not set
+        if [ -z "$DEPLOYMENT_URL" ]; then
+          TARGET_SUBPATH=$(echo "$TARGET_PATH" | sed 's|^/||' | sed 's|/$||')
+          if [ -z "$TARGET_SUBPATH" ]; then
+            DEPLOYMENT_URL="https://minademian.com"
+          else
+            DEPLOYMENT_URL="https://minademian.com/$TARGET_SUBPATH/"
+          fi
+        fi
+        
+        # Set outputs
+        echo "deployment-type=$DEPLOYMENT_TYPE" >> $GITHUB_OUTPUT
+        echo "target-path=$TARGET_PATH" >> $GITHUB_OUTPUT
+        echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+        echo "environment-name=$ENVIRONMENT_NAME" >> $GITHUB_OUTPUT
+        echo "git-tag=$GIT_TAG" >> $GITHUB_OUTPUT
+        echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+        
+        # Log final configuration
+        echo ""
+        echo "✅ Deployment configuration complete:"
+        echo "   🎯 Type: $DEPLOYMENT_TYPE"
+        echo "   📁 Target: $TARGET_PATH"
+        echo "   🌐 URL: $DEPLOYMENT_URL"
+        echo "   🏷️  Environment: $ENVIRONMENT_NAME"
+        [ -n "$GIT_TAG" ] && echo "   🔖 Git Tag: $GIT_TAG"
+        [ -n "$BRANCH_NAME" ] && echo "   🌿 Branch: $BRANCH_NAME"
+        echo ""
+        echo "📝 Setting outputs for next job..."
+        echo "   deployment-type → $DEPLOYMENT_TYPE"
+        echo "   target-path → $TARGET_PATH"
+        echo "   deployment-url → $DEPLOYMENT_URL"

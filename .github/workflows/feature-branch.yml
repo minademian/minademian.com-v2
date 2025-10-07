@@ -11,21 +11,227 @@ on:
       - "test/*"
       - "style/*"
       - "perf/*"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        description: 'Branch name for sandbox deployment'
+        required: true
+        default: ''
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
 
 jobs:
-  deploy:
+  install:
+    name: Install Dependencies
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Verify dependencies
+        run: pnpm list --depth=0
+
+  lint:
+    name: Code Linting
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Run linting
+        run: pnpm run lint
+
+  typecheck:
+    name: Type Checking
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Run type checking
+        uses: ./.github/actions/typecheck
+
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
+    outputs:
+      artifacts-uploaded: ${{ steps.check-upload.outputs.artifacts-uploaded }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Build and verify
+        uses: ./.github/actions/build-project
+
+      - name: Verify build output exists
+        run: |
+          echo "Checking for build output..."
+          if [ -d "out" ]; then
+            echo "✅ out/ directory found"
+            echo "Contents:"
+            ls -la out/ | head -5
+            echo "Total files: $(find out -type f | wc -l)"
+          else
+            echo "❌ out/ directory not found!"
+            echo "Available directories:"
+            ls -la
+            exit 1
+          fi
+
+      - name: Upload build artifacts for sandbox
+        id: upload-artifacts
+        uses: actions/upload-artifact@v4
         with:
-          node-version: 18
+          name: sandbox-build-files
+          path: out/
+          retention-days: 3
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Check upload success
+        id: check-upload
+        run: |
+          if [ "${{ steps.upload-artifacts.outcome }}" = "success" ]; then
+            echo "✅ Build artifacts uploaded successfully"
+            echo "artifacts-uploaded=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ No artifacts were uploaded - stopping deployment pipeline"
+            echo "artifacts-uploaded=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Build project
-        run: pnpm build
+  configure-sandbox:
+    name: Configure Sandbox Deployment
+    runs-on: ubuntu-latest
+    needs: build
+    if: always() && needs.build.result == 'success' && needs.build.outputs.artifacts-uploaded == 'true'
+    outputs:
+      deployment-type: ${{ steps.config.outputs.deployment-type }}
+      target-path: ${{ steps.config.outputs.target-path }}
+      deployment-url: ${{ steps.config.outputs.deployment-url }}
+      branch-name: ${{ steps.config.outputs.branch-name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure sandbox deployment
+        id: config
+        uses: ./.github/actions/configure-deployment
+        with:
+          event-name: ${{ github.event_name }}
+          ref: ${{ github.ref }}
+          ref-name: ${{ github.ref_name }}
+          branch-name: ${{ github.head_ref || github.ref_name || github.event.inputs.branch_name }}
+          deployment-context: 'sandbox'
+          base-path: ${{ secrets.DEPLOY_BASE_PATH }}
+
+  deploy-sandbox:
+    name: Deploy to Sandbox
+    runs-on: ubuntu-latest
+    needs: [build, configure-sandbox]
+    if: always() && needs.build.result == 'success' && needs.configure-sandbox.result == 'success' && needs.build.outputs.artifacts-uploaded == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to sandbox
+        uses: ./.github/actions/deploy-website
+        with:
+          deployment-type: ${{ needs.configure-sandbox.outputs.deployment-type }}
+          target-path: ${{ needs.configure-sandbox.outputs.target-path }}
+          branch-name: ${{ needs.configure-sandbox.outputs.branch-name }}
+          build-artifact-name: 'sandbox-build-files'
+          sftp-host: ${{ secrets.SFTP_HOST }}
+          sftp-username: ${{ secrets.SFTP_USERNAME }}
+          sftp-password: ${{ secrets.SFTP_PASSWORD }}
+          base-path: ${{ secrets.DEPLOY_BASE_PATH }}
+
+      - name: Comment on PR with preview link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const previewUrl = '${{ needs.configure-sandbox.outputs.deployment-url }}';
+            const branchName = '${{ needs.configure-sandbox.outputs.branch-name }}';
+            
+            const comment = `## 🔍 Feature Branch Preview
+            
+            Your changes have been deployed to the sandbox environment!
+            
+            **Preview URL:** ${previewUrl}
+            **Branch:** \`${branchName}\`
+            **Commit:** \`${{ github.event.pull_request.head.sha }}\`
+            
+            This preview will be updated automatically when you push new commits to this PR.
+            
+            > **Note:** The sandbox deployment is for preview purposes only and may be cleaned up periodically.`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  deployment-skipped:
+    name: Deployment Skipped
+    runs-on: ubuntu-latest
+    needs: build
+    if: always() && needs.build.result == 'success' && needs.build.outputs.artifacts-uploaded != 'true'
+    steps:
+      - name: Skip deployment notification
+        run: |
+          echo "🚫 Sandbox deployment skipped"
+          echo "Reason: No build artifacts were created"
+          echo "Check the build step to ensure the out/ directory is generated"
+          echo ""
+          echo "💡 Common causes:"
+          echo "   - Next.js config missing 'output: \"export\"'"
+          echo "   - Build command failed silently"
+          echo "   - Build outputs to a different directory"
+
+      - name: Comment on PR about skipped deployment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `## ⚠️ Sandbox Deployment Skipped
+            
+            The sandbox deployment was skipped because no build artifacts were generated.
+            
+            **Possible causes:**
+            - Next.js configuration missing \`output: "export"\`
+            - Build command failed during execution
+            - Build outputs to a different directory than \`out/\`
+            
+            **To fix:**
+            1. Check the build logs in the "Build Project" job
+            2. Ensure your \`next.config.js\` includes \`output: "export"\`
+            3. Verify the build command completes successfully
+            
+            Once fixed, push another commit to trigger a new deployment.`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

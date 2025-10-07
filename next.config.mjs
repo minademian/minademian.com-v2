@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 
-import { dir } from 'console';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -11,14 +10,10 @@ const nextConfig = {
   sassOptions: {
     includePaths: [path.join(__dirname, 'styles')],
   },
-};
-
-/*
   output: 'export',
-  distDir: 'v2.0',
   images: {
     unoptimized: true,
   },
   trailingSlash: true,
-*/
+};
 export default nextConfig;

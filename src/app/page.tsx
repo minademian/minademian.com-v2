@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { SectionComponent } from '@/atoms/Section.component';
 import { LinkArrow } from '@/molecules//Icons.component';
@@ -9,8 +9,8 @@ import AnimatedText from '@/organisms/AnimatedText.component';
 import HireMe from '@/organisms/HireMe.component';
 import TransitionEffect from '@/organisms/TransitionEffect.component';
 
-import profilePic from '../../public/images/art/homepage-art-3.png';
-import lightBulb from '../../public/images/miscellaneous_icons_1.svg';
+import profilePic from '@/public/images/art/homepage-art-3.png';
+import lightBulb from '@/public/images/miscellaneous_icons_1.svg';
 
 export default function Page() {
   return (

@@ -1,13 +1,12 @@
 'use client';
 
-import React from 'react';
 
 import { SectionComponent } from '@/atoms/Section.component';
 import AnimatedText from '@/organisms/AnimatedText.component';
 import TransitionEffect from '@/organisms/TransitionEffect.component';
 
-import devtalk from '../../../public/images/articles/devtalk.png';
-import githubp from '../../../public/images/articles/github.png';
+import devtalk from '@/public/images/articles/devtalk.png';
+import githubp from '@/public/images/articles/github.png';
 import { FeaturedArticle } from '../components/organisms/FeaturedArticle.component';
 
 export default function Articles() {

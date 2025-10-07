@@ -1,35 +1,3 @@
 {
-  "compilerOptions": {
-    "baseUrl": "src/app",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/app/*": ["./*"],
-      "@/styles/*": ["styles/*"],
-      "@/components/*": ["components/*"],
-      "@/atoms/*": ["components/atoms/*"],
-      "@/molecules/*": ["components/molecules/*"],
-      "@/organisms/*": ["components/organisms/*"],
-      "@/pages/*": ["components/pages/*"],
-      "@/templates/*": ["components/templates/*"],
-      "@/types/*": ["types/*"]
-    }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "v2.0"]
+  "extends": "./tsconfig.local.json"
 }

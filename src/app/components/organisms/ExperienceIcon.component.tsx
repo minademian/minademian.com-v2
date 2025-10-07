@@ -1,5 +1,5 @@
-import React, { useRef, RefObject } from 'react';
 import { motion, useScroll } from 'framer-motion';
+import { RefObject } from 'react';
 
 type ListIconRef = RefObject<HTMLElement> | undefined;
 
