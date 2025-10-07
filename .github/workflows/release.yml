@@ -217,6 +217,27 @@ jobs:
           echo "new-tag=$NEW_TAG" >> $GITHUB_OUTPUT
           echo "Created and pushed tag: $NEW_TAG"
 
+      - name: Create GitHub Release
+        if: steps.check.outputs.should-create-release == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.next-version.outputs.next-version }}
+          release_name: Release ${{ steps.next-version.outputs.next-version }}
+          body: |
+            ## What's Changed
+            
+            This release was automatically created from PR merge to main branch.
+            
+            **Deployment Info:**
+            - 🌐 Production URL: https://minademian.com/
+            - 🔗 Release URL: https://minademian.com/releases/${{ steps.next-version.outputs.next-version }}/
+            
+            **Full Changelog**: https://github.com/${{ github.repository }}/commits/${{ steps.next-version.outputs.next-version }}
+          draft: false
+          prerelease: false
+
   configure:
     name: Configure Deployment
     runs-on: ubuntu-latest

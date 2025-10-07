@@ -6,19 +6,21 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Determine base path and asset prefix based on deployment environment
 const getBasePath = () => {
-  // For sandbox deployments, use branch name as base path since subdomain serves from /branch-name/
+  // For sandbox deployments, use sanitized branch name as base path since subdomain serves from /branch-name/
   if (process.env.DEPLOYMENT_TYPE === 'sandbox' && process.env.BRANCH_NAME) {
-    return `/${process.env.BRANCH_NAME}`;
+    // Sanitize branch name to match server directory structure
+    const sanitizedBranch = process.env.BRANCH_NAME
+      .replace(/[^a-zA-Z0-9.-]/g, '-')  // Replace invalid chars with dash
+      .replace(/--+/g, '-')             // Replace multiple dashes with single dash
+      .replace(/^-|-$/g, '');           // Remove leading/trailing dashes
+    return `/${sanitizedBranch}`;
   }
 
-  // For release deployments with version tags
   if (process.env.DEPLOYMENT_TYPE === 'release' && process.env.GIT_TAG) {
     return `/releases/${process.env.GIT_TAG}`;
   }
 
-  // For production (latest) and default cases
   return '';
 };
 
