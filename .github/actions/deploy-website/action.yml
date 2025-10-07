@@ -95,14 +95,16 @@ runs:
             ;;
         esac
 
-    - name: Deploy via SFTP
+    - name: Deploy via SFTP  
       uses: appleboy/scp-action@master
       with:
         host: ${{ inputs.sftp-host }}
         username: ${{ inputs.sftp-username }}
         password: ${{ inputs.sftp-password }}
-        source: "./out/"
+        source: "./out/*"
         target: ${{ inputs.target-path }}
+        strip_components: 1
+        overwrite: true
 
     - name: Update latest symlink (for release deployments)
       if: inputs.deployment-type == 'release' && inputs.git-tag != ''
