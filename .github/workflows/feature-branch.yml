@@ -136,6 +136,7 @@ jobs:
           ref-name: ${{ github.ref_name }}
           branch-name: ${{ github.head_ref || github.ref_name || github.event.inputs.branch_name }}
           deployment-context: 'sandbox'
+          base-path: ${{ secrets.DEPLOY_BASE_PATH }}
 
   deploy-sandbox:
     name: Deploy to Sandbox
@@ -156,6 +157,7 @@ jobs:
           sftp-host: ${{ secrets.SFTP_HOST }}
           sftp-username: ${{ secrets.SFTP_USERNAME }}
           sftp-password: ${{ secrets.SFTP_PASSWORD }}
+          base-path: ${{ secrets.DEPLOY_BASE_PATH }}
 
       - name: Comment on PR with preview link
         if: github.event_name == 'pull_request'

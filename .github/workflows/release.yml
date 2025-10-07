@@ -19,13 +19,13 @@ on:
           - production
           - staging
       deploy_target:
-        description: "Deployment target directory"
+        description: "Deployment target directory (relative to base path)"
         required: true
-        default: "/staging/"
+        default: "staging/"
         type: choice
         options:
-          - "/latest/"
-          - "/staging/"
+          - "latest/"
+          - "staging/"
       release_type:
         description: "Release type (only for main branch pushes)"
         required: false
@@ -235,6 +235,7 @@ jobs:
           manual-environment: ${{ github.event.inputs.environment }}
           manual-target: ${{ github.event.inputs.deploy_target }}
           deployment-context: 'release'
+          base-path: ${{ secrets.DEPLOY_BASE_PATH }}
 
   deploy:
     name: Deploy to Server
@@ -255,3 +256,4 @@ jobs:
           sftp-host: ${{ secrets.SFTP_HOST }}
           sftp-username: ${{ secrets.SFTP_USERNAME }}
           sftp-password: ${{ secrets.SFTP_PASSWORD }}
+          base-path: ${{ secrets.DEPLOY_BASE_PATH }}

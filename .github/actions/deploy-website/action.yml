@@ -28,6 +28,9 @@ inputs:
   sftp-password:
     description: 'SFTP password'
     required: true
+  base-path:
+    description: 'Base path on server (e.g., /home/username/domain.com)'
+    required: true
 
 runs:
   using: composite
@@ -74,16 +77,23 @@ runs:
         echo "📁 Sample files to deploy:"
         find ./out -type f -name "*.html" | head -3
 
-    - name: Create remote directory
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ inputs.sftp-host }}
-        username: ${{ inputs.sftp-username }}
-        password: ${{ inputs.sftp-password }}
-        script: |
-          echo "Creating directory: ${{ inputs.target-path }}"
-          mkdir -p "${{ inputs.target-path }}"
-          echo "Directory ready: ${{ inputs.target-path }}"
+    - name: Deployment info
+      shell: bash
+      run: |
+        echo "🚀 Deploying to: ${{ inputs.target-path }}"
+        echo "📦 Deployment type: ${{ inputs.deployment-type }}"
+        
+        case "${{ inputs.deployment-type }}" in
+          "release")
+            echo "🏷️  Release deployment - will update latest symlink after upload"
+            ;;
+          "sandbox")
+            echo "🧪 Sandbox deployment - direct file upload only"
+            ;;
+          "production")
+            echo "🏠 Production deployment - direct file upload only"
+            ;;
+        esac
 
     - name: Deploy via SFTP
       uses: appleboy/scp-action@master
@@ -102,7 +112,7 @@ runs:
         username: ${{ inputs.sftp-username }}
         password: ${{ inputs.sftp-password }}
         script: |
-          cd /
+          cd "${{ inputs.base-path }}"
           echo "Current directory: $(pwd)"
           echo "Contents before symlink update:"
           ls -la | grep -E "(latest|releases)"
@@ -147,5 +157,8 @@ runs:
             SANITIZED_BRANCH=$(echo "${{ inputs.branch-name }}" | sed 's/[^a-zA-Z0-9.-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
             echo "🌿 Branch: ${{ inputs.branch-name }}"
             echo "🌐 Sandbox URL: https://minademian.com/sandbox/$SANITIZED_BRANCH/"
+            ;;
+          *)
+            echo "❓ Unknown deployment type: ${{ inputs.deployment-type }}"
             ;;
         esac
