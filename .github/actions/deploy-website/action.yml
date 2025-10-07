@@ -103,7 +103,7 @@ runs:
         password: ${{ inputs.sftp-password }}
         source: "out/*"
         target: ${{ inputs.base-path }}/${{ inputs.target-path }}
-        debug: true
+        strip_components: 1
 
     - name: Update latest symlink (for release deployments)
       if: inputs.deployment-type == 'release' && inputs.git-tag != ''
@@ -151,13 +151,13 @@ runs:
             ;;
           "release")
             echo "🏷️  Release: ${{ inputs.git-tag }}"
-            echo "🌐 Release URL: https://minademian.com/releases/${{ inputs.git-tag }}/"
-            echo "🔗 Latest URL: https://minademian.com/latest/ (symlink updated)"
+            echo "🌐 Release URL: https://minademian.com/releases/${{ inputs.git-tag }}/ (symlink has also been updated)"
+            echo "🔗 Latest URL: https://minademian.com/"
             ;;
           "sandbox")
             SANITIZED_BRANCH=$(echo "${{ inputs.branch-name }}" | sed 's/[^a-zA-Z0-9.-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
             echo "🌿 Branch: ${{ inputs.branch-name }}"
-            echo "🌐 Sandbox URL: https://minademian.com/sandbox/$SANITIZED_BRANCH/"
+            echo "🌐 Sandbox URL: https://sandbox.minademian.com/$SANITIZED_BRANCH/"
             ;;
           *)
             echo "❓ Unknown deployment type: ${{ inputs.deployment-type }}"
