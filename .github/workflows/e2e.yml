@@ -74,10 +74,11 @@ jobs:
 
       - name: Set test results
         id: test-results
+        if: always()
         run: |
           if [ "${{ inputs.skip-e2e }}" == "true" ]; then
             echo "results=skipped" >> $GITHUB_OUTPUT
-          elif [ ${{ steps.run-tests.outcome }} == "success" ]; then
+          elif [ "${{ steps.run-tests.outcome }}" == "success" ]; then
             echo "results=passed" >> $GITHUB_OUTPUT
           else
             echo "results=failed" >> $GITHUB_OUTPUT
