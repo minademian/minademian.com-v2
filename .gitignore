@@ -43,3 +43,7 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Cucumber BDD
+/screenshots/
+cucumber-report.json

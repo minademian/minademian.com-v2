@@ -61,10 +61,19 @@ pnpm lint:fix-trailing # Fix trailing spaces only
 pnpm type-check        # Run TypeScript compiler check
 
 # Testing
-pnpm test:e2e         # Run end-to-end tests
-pnpm test:e2e:ui      # Run tests in interactive UI mode
-pnpm test:e2e:debug   # Run tests in debug mode
-pnpm test:e2e:report  # Show test report
+pnpm test:e2e           # Run end-to-end tests
+pnpm test:e2e:ui        # Run tests in interactive UI mode
+pnpm test:e2e:debug     # Run tests in debug mode
+pnpm test:e2e:report    # Show test report
+
+# BDD Testing (Cucumber)
+pnpm test:cucumber        # Run Cucumber BDD tests
+pnpm test:cucumber:watch  # Run BDD tests in watch mode (TDD)
+pnpm test:cucumber:smoke  # Run only smoke tests (@smoke tagged)
+pnpm test:bdd            # Alias for test:cucumber
+
+# Git Pre-commit
+pnpm pre-commit-check     # Full checks before commit (lint + types)
 ```
 
 ## 🔄 CI/CD Pipeline
@@ -171,6 +180,55 @@ DEPLOY_BASE_PATH=/home/user/minademian.com
 ├── DEPLOYING.md       # Deployment documentation
 └── next.config.mjs    # Next.js configuration
 ```
+
+## 🧪 Testing Strategy
+
+This project uses a comprehensive testing approach combining **End-to-End (E2E)** and **Behavior-Driven Development (BDD)** testing:
+
+### E2E Testing (Playwright)
+- **Cross-browser**: Chromium, Firefox, WebKit
+- **CI Integration**: Automated testing in all workflows
+- **Interactive UI**: Debug mode with `pnpm test:e2e:ui`
+- **Documentation**: See [TESTING.md](./TESTING.md) for complete guide
+
+### BDD Testing (Cucumber)
+- **Gherkin Syntax**: Human-readable test scenarios
+- **TypeScript Support**: Strongly-typed step definitions with Playwright integration
+- **ES Module Compatible**: Uses Node.js 20 with `"type": "module"`
+- **Feature Coverage**: Homepage, navigation, responsive design, dark mode
+
+#### BDD Test Structure
+```
+features/
+├── homepage.feature          # Homepage functionality scenarios
+├── about.feature            # About page scenarios
+├── step-definitions/        # TypeScript step implementations
+│   ├── navigation.steps.ts  # Navigation and UI interactions
+│   └── about.steps.ts       # About page specific steps
+└── support/                 # Test infrastructure
+    ├── world.ts             # CustomWorld class with Playwright
+    └── hooks.ts             # Before/After scenario hooks
+```
+
+#### Running BDD Tests
+```bash
+# Full BDD test suite
+pnpm test:cucumber
+
+# Smoke tests only (tagged @smoke)
+pnpm test:cucumber:smoke
+
+# Watch mode for TDD workflow
+pnpm test:cucumber:watch
+
+# Debug mode with verbose output
+pnpm test:cucumber:debug
+```
+
+### Requirements
+- **Node.js 20+**: Required for Cucumber.js compatibility
+- **ES Modules**: Project uses `"type": "module"` in package.json
+- **PostCSS Config**: Renamed to `.cjs` for Next.js compatibility
 
 ## 🔧 Technical Highlights
 

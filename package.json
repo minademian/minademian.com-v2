@@ -1,6 +1,7 @@
 {
   "name": "minademian.com-v2",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -16,7 +17,12 @@
     "test:e2e:watch": "chokidar 'src/**/*.{ts,tsx,js,jsx}' 'e2e/**/*.{ts,tsx,js,jsx}' -c 'pnpm test:e2e' --initial",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "test:cucumber": "cucumber-js",
+    "test:cucumber:watch": "chokidar 'src/**/*.{ts,tsx,js,jsx}' 'features/**/*.{feature,js}' -c 'pnpm test:cucumber' --initial",
+    "test:cucumber:smoke": "cucumber-js --tags @smoke",
+    "test:cucumber:debug": "cucumber-js --format @cucumber/pretty-formatter",
+    "test:bdd": "pnpm test:cucumber"
   },
   "dependencies": {
     "framer-motion": "^11.0.3",
@@ -26,7 +32,10 @@
     "sharp": "^0.33.2"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^12.2.0",
+    "@cucumber/pretty-formatter": "^2.3.0",
     "@playwright/test": "^1.56.0",
+    "@types/cucumber": "^7.0.3",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
@@ -38,10 +47,12 @@
     "eslint-config-next": "14.1.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.3",
+    "playwright": "^1.56.0",
     "postcss": "^8",
     "sass": "^1.70.0",
     "server-only": "^0.0.1",
     "tailwindcss": "^3.3.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }
