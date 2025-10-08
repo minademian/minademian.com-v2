@@ -38,6 +38,19 @@ export default function Projects() {
               />
             </div>
           </div>
+          <div className="col-span-6 2xs:col-span-6 2xs:mr-8">
+            {' '}
+            <Project
+              title="Driver Recommendations"
+              // eslint-disable-next-line max-len
+              summary="A full-stack solution to provide recommendations for predicted trips to Cabonline taxi drivers,
+              powered by a machine learning model to predict supply and demand."
+              link="https://projects.minademian.com/scania-test-case"
+              type="Project"
+              img={newssifter}
+              github="https://github.com/minademian/scania-testcase"
+            />
+          </div>
         </SectionComponent>
       </main>
     </>
