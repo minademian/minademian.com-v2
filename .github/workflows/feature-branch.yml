@@ -136,6 +136,7 @@ jobs:
     if: always() && needs.lint.result == 'success' && needs.typecheck.result == 'success' && (needs.e2e-tests.result == 'success' || needs.e2e-tests.result == 'skipped')
     outputs:
       artifacts-uploaded: ${{ steps.check-upload.outputs.artifacts-uploaded }}
+      cache-hit: ${{ steps.build-cache.outputs.cache-hit }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -143,11 +144,51 @@ jobs:
       - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-pnpm
 
-      - name: Build and verify
+      - name: Create cache key for build
+        id: build-cache-key
+        run: |
+          # Create hash of files that affect build output
+          SOURCE_HASH=$(find src app public -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.json" -o -name "*.md" -o -name "*.css" -o -name "*.scss" \) -exec sha256sum {} \; | sort | sha256sum | cut -d' ' -f1)
+          CONFIG_HASH=$(cat package.json pnpm-lock.yaml next.config.mjs tailwind.config.ts tsconfig.json postcss.config.js 2>/dev/null | sha256sum | cut -d' ' -f1)
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          
+          echo "source-hash=$SOURCE_HASH" >> $GITHUB_OUTPUT
+          echo "config-hash=$CONFIG_HASH" >> $GITHUB_OUTPUT
+          echo "cache-key=build-$BRANCH_NAME-$SOURCE_HASH-$CONFIG_HASH" >> $GITHUB_OUTPUT
+          
+          echo "🔑 Build cache key components:"
+          echo "   Branch: $BRANCH_NAME"
+          echo "   Source hash: $SOURCE_HASH"
+          echo "   Config hash: $CONFIG_HASH"
+
+      - name: Restore build cache
+        id: build-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            out/
+            .next/cache/
+          key: ${{ steps.build-cache-key.outputs.cache-key }}
+          restore-keys: |
+            build-${{ github.head_ref || github.ref_name }}-
+
+      - name: Build project (cache miss)
+        if: steps.build-cache.outputs.cache-hit != 'true'
         uses: ./.github/actions/build-project
         with:
           deployment-type: 'sandbox'
           branch-name: ${{ github.head_ref || github.ref_name }}
+
+      - name: Build status
+        run: |
+          if [ "${{ steps.build-cache.outputs.cache-hit }}" = "true" ]; then
+            echo "🚀 Build cache hit! Skipping build process."
+            echo "   Cache key: ${{ steps.build-cache-key.outputs.cache-key }}"
+            echo "   This significantly speeds up the CI pipeline."
+          else
+            echo "🏗️ Cache miss - build completed."
+            echo "   New build cached for future runs."
+          fi
 
       - name: Verify build output exists
         run: |
@@ -168,7 +209,7 @@ jobs:
         id: upload-artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: sandbox-build-files
+          name: sandbox-build-files-${{ github.run_number }}
           path: out/
           retention-days: 3
 
@@ -177,6 +218,11 @@ jobs:
         run: |
           if [ "${{ steps.upload-artifacts.outcome }}" = "success" ]; then
             echo "✅ Build artifacts uploaded successfully"
+            if [ "${{ steps.build-cache.outputs.cache-hit }}" = "true" ]; then
+              echo "   Source: Build cache (no rebuild needed)"
+            else
+              echo "   Source: Fresh build (cached for future runs)"
+            fi
             echo "artifacts-uploaded=true" >> $GITHUB_OUTPUT
           else
             echo "❌ No artifacts were uploaded - stopping deployment pipeline"
@@ -240,7 +286,7 @@ jobs:
           ref: ${{ github.ref }}
           ref-name: ${{ github.ref_name }}
           branch-name: ${{ github.head_ref || github.ref_name || github.event.inputs.branch_name }}
-          build-artifact-name: 'sandbox-build-files'
+          build-artifact-name: 'sandbox-build-files-${{ github.run_number }}'
           build-artifacts-available: ${{ needs.build.outputs.artifacts-uploaded }}
           ssh-host: ${{ secrets.SFTP_HOST }}
           ssh-username: ${{ secrets.SFTP_USERNAME }}
@@ -262,6 +308,9 @@ jobs:
               return;
             }
 
+            const cacheHit = '${{ needs.build.outputs.cache-hit }}';
+            const buildStatus = cacheHit === 'true' ? '🚀 Build cache hit (fast deployment)' : '🏗️ Fresh build (cached for future runs)';
+            
             const comment = `## 🔍 Feature Branch Preview
 
             Your changes have been deployed to the sandbox environment!
@@ -269,6 +318,7 @@ jobs:
             **Preview URL:** ${previewUrl || 'Deployment in progress...'}
             **Branch:** \`${branchName}\`
             **Commit:** \`${{ github.event.pull_request.head.sha }}\`
+            **Build:** ${buildStatus}
 
             This preview will be updated automatically when you push new commits to this PR.
 
