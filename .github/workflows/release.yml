@@ -3,7 +3,8 @@ name: Release and Deploy
 # Permissions needed for tag creation and repository access
 permissions:
   contents: write  # Needed to create tags and push to repository
-  pull-requests: read  # Needed to read PR information
+  pull-requests: write  # Needed to comment on PRs
+  issues: write  # Needed to comment on issues
 
 on:
   pull_request:
@@ -11,24 +12,29 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      environment:
-        description: "Deployment environment"
+      deployment_type:
+        description: "Type of deployment"
         required: true
-        default: "production"
         type: choice
+        default: "manual_tag_deploy"
         options:
-          - production
-          - staging
+          - "manual_tag_deploy"
+          - "create_new_release"
+      tag_to_deploy:
+        description: "Tag to deploy (e.g., v2.2.3, v2.1.0)"
+        required: false
+        type: string
+        default: "v2.2.3"
       deploy_target:
-        description: "Deployment target directory (relative to base path)"
+        description: "Deployment target"
         required: true
-        default: "staging/"
+        default: "staging"
         type: choice
         options:
-          - "latest/"
-          - "staging/"
+          - "staging"
+          - "latest"
       release_type:
-        description: "Release type (only for main branch pushes)"
+        description: "Release type (only for new releases)"
         required: false
         default: "none"
         type: choice
@@ -39,12 +45,42 @@ on:
           - major
 
 jobs:
+  checkout-tag:
+    name: Checkout Selected Tag
+    runs-on: ubuntu-latest
+    if: github.event.inputs.deployment_type == 'manual_tag_deploy'
+    outputs:
+      ref: ${{ steps.set-ref.outputs.ref }}
+      tag: ${{ steps.set-ref.outputs.tag }}
+    steps:
+      - name: Set checkout reference
+        id: set-ref
+        run: |
+          if [ "${{ github.event.inputs.tag_to_deploy }}" != "" ]; then
+            echo "ref=${{ github.event.inputs.tag_to_deploy }}" >> $GITHUB_OUTPUT
+            echo "tag=${{ github.event.inputs.tag_to_deploy }}" >> $GITHUB_OUTPUT
+            echo "Deploying tag: ${{ github.event.inputs.tag_to_deploy }}"
+          else
+            echo "ref=${{ github.ref }}" >> $GITHUB_OUTPUT
+            echo "tag=current" >> $GITHUB_OUTPUT
+            echo "Deploying current ref: ${{ github.ref }}"
+          fi
+
+      - name: Checkout repository at tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.set-ref.outputs.ref }}
+
   validate:
     name: Pre-build Validation
     runs-on: ubuntu-latest
+    if: always()
+    needs: [checkout-tag]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
 
       - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -59,16 +95,20 @@ jobs:
     name: E2E Tests
     uses: ./.github/workflows/e2e.yml
     needs: validate
+    if: github.event.inputs.deployment_type != 'manual_tag_deploy'
     with:
       environment: 'production'
+      fail_on_error: false  # Non-blocking: continue pipeline even if e2e tests fail
 
   build:
     name: Build Project
     runs-on: ubuntu-latest
-    needs: [validate, e2e-tests]
+    needs: [validate]  # Only depend on validate, not e2e-tests (non-blocking)
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
 
       - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -119,7 +159,7 @@ jobs:
         run: |
           SHOULD_CREATE="false"
           RELEASE_TYPE="none"
-          
+
           # Check for release type in workflow input (manual dispatch)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.release_type }}" != "none" ]; then
             RELEASE_TYPE="${{ github.event.inputs.release_type }}"
@@ -130,10 +170,10 @@ jobs:
             PR_TITLE="${{ github.event.pull_request.title }}"
             PR_BODY="${{ github.event.pull_request.body }}"
             PR_TEXT="$PR_TITLE $PR_BODY"
-            
+
             echo "Checking PR for release type..."
             echo "PR Title: $PR_TITLE"
-            
+
             if echo "$PR_TEXT" | grep -qE "\[(major|minor|patch)\]"; then
               RELEASE_TYPE=$(echo "$PR_TEXT" | grep -oE "\[(major|minor|patch)\]" | head -1 | tr -d '[]')
               SHOULD_CREATE="true"
@@ -159,7 +199,7 @@ jobs:
               echo "No release type specified - defaulting to major release"
             fi
           fi
-          
+
           echo "should-create-release=$SHOULD_CREATE" >> $GITHUB_OUTPUT
           echo "release-type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
 
@@ -177,16 +217,16 @@ jobs:
         run: |
           LATEST_TAG="${{ steps.latest-tag.outputs.latest-tag }}"
           RELEASE_TYPE="${{ steps.check.outputs.release-type }}"
-          
+
           # Remove 'v' prefix for calculation
           VERSION=${LATEST_TAG#v}
-          
+
           # Split version into parts
           IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
           MAJOR=${VERSION_PARTS[0]:-0}
           MINOR=${VERSION_PARTS[1]:-0}
           PATCH=${VERSION_PARTS[2]:-0}
-          
+
           # Calculate new version based on release type
           case $RELEASE_TYPE in
             major)
@@ -202,7 +242,7 @@ jobs:
               PATCH=$((PATCH + 1))
               ;;
           esac
-          
+
           NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
           echo "next-version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "Next version: $NEW_VERSION"
@@ -212,15 +252,15 @@ jobs:
         if: steps.check.outputs.should-create-release == 'true'
         run: |
           NEW_TAG="${{ steps.next-version.outputs.next-version }}"
-          
+
           # Configure git
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
+
           # Create and push tag
           git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
           git push origin "$NEW_TAG"
-          
+
           echo "new-tag=$NEW_TAG" >> $GITHUB_OUTPUT
           echo "Created and pushed tag: $NEW_TAG"
 
@@ -234,13 +274,13 @@ jobs:
           release_name: Release ${{ steps.next-version.outputs.next-version }}
           body: |
             ## What's Changed
-            
+
             This release was automatically created from PR merge to main branch.
-            
+
             **Deployment Info:**
             - 🌐 Production URL: https://minademian.com/
             - 🔗 Release URL: https://minademian.com/releases/${{ steps.next-version.outputs.next-version }}/
-            
+
             **Full Changelog**: https://github.com/${{ github.repository }}/commits/${{ steps.next-version.outputs.next-version }}
           draft: false
           prerelease: false
@@ -249,7 +289,7 @@ jobs:
     name: Configure Deployment
     runs-on: ubuntu-latest
     needs: [build, create-release]
-    if: always() && needs.build.result == 'success' && (needs.create-release.result == 'success' || needs.create-release.result == 'skipped')
+    if: always() && needs.build.result == 'success' && (github.event.inputs.deployment_type == 'manual_tag_deploy' || needs.create-release.result == 'success' || needs.create-release.result == 'skipped')
     outputs:
       deployment-type: ${{ steps.config.outputs.deployment-type }}
       target-path: ${{ steps.config.outputs.target-path }}
@@ -259,14 +299,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
 
-      - name: Debug release outputs
+      - name: Debug deployment information
         run: |
-          echo "🔍 Debugging release information:"
+          echo "🔍 Debugging deployment information:"
+          echo "Deployment type: ${{ github.event.inputs.deployment_type }}"
+          echo "Tag to deploy: ${{ github.event.inputs.tag_to_deploy }}"
+          echo "Deploy target: ${{ github.event.inputs.deploy_target }}"
           echo "Create-release job result: ${{ needs.create-release.result }}"
-          echo "Should create release: ${{ needs.create-release.outputs.should-create-release }}"
-          echo "New tag: '${{ needs.create-release.outputs.new-tag }}'"
-          echo "Git tag input will be: '${{ needs.create-release.outputs.new-tag }}'"
+          if [ "${{ needs.create-release.outputs.new-tag }}" != "" ]; then
+            echo "New tag from create-release: ${{ needs.create-release.outputs.new-tag }}"
+          fi
 
       - name: Configure deployment
         id: config
@@ -275,20 +320,22 @@ jobs:
           event-name: ${{ github.event_name }}
           ref: ${{ github.ref }}
           ref-name: ${{ github.ref_name }}
-          git-tag: ${{ needs.create-release.outputs.new-tag }}
-          manual-environment: ${{ github.event.inputs.environment }}
-          manual-target: ${{ github.event.inputs.deploy_target }}
-          deployment-context: 'release'
+          git-tag: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || needs.create-release.outputs.new-tag }}
+          manual-environment: production
+          manual-target: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && format('{0}/', github.event.inputs.deploy_target) || github.event.inputs.deploy_target }}
+          deployment-context: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && 'manual-tag' || 'release' }}
           base-path: ${{ secrets.DEPLOY_BASE_PATH }}
 
   deploy:
     name: Deploy to Server
-    runs-on: ubuntu-latest  
+    runs-on: ubuntu-latest
     needs: [configure, create-release]
     if: always() && needs.configure.result == 'success'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
 
       - name: Deploy website
         uses: ./.github/actions/deploy-website

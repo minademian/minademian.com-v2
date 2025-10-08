@@ -12,9 +12,9 @@ on:
         default: ''
 
 permissions:
-  contents: read
-  pull-requests: write
-  issues: write
+  contents: read  # Needed to checkout repository
+  pull-requests: write  # Needed to comment on PRs
+  issues: write  # Needed to comment on issues
 
 jobs:
   install:
@@ -64,6 +64,7 @@ jobs:
     needs: [lint, typecheck]
     with:
       environment: 'development'
+      fail_on_error: true  # Blocking: fail the pipeline if e2e tests fail
 
   build:
     name: Build Project
