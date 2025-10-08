@@ -1,16 +1,6 @@
 name: Test Feature Branch
 
 on:
-  push:
-    branches:
-      - "feat/*"
-      - "fix/*"
-      - "chore/*"
-      - "refactor/*"
-      - "docs/*"
-      - "test/*"
-      - "style/*"
-      - "perf/*"
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [ main ]
