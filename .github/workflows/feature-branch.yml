@@ -58,10 +58,73 @@ jobs:
       - name: Run type checking
         uses: ./.github/actions/typecheck
 
+  check-commit-type:
+    name: Check Commit Type
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
+    outputs:
+      skip-e2e: ${{ steps.check.outputs.skip-e2e }}
+      commit-type: ${{ steps.check.outputs.commit-type }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 10  # Get recent commits to check
+
+      - name: Check for CI/Chore commits
+        id: check
+        shell: bash
+        run: |
+          SKIP_E2E="false"
+          COMMIT_TYPE="feature"
+          
+          echo "🔍 Checking recent commit messages for CI/Chore patterns..."
+          
+          # Check the last 3 commits for ci or chore patterns
+          if git log --oneline -n 3 | grep -qiE "(^[a-f0-9]+ )?(ci|chore)(\(|:| )"; then
+            SKIP_E2E="true"
+            COMMIT_TYPE="ci-chore"
+            echo "🔧 CI/Chore commit detected - skipping E2E tests"
+            echo ""
+            echo "Matching commits found:"
+            git log --oneline -n 3 | grep -iE "(^[a-f0-9]+ )?(ci|chore)(\(|:| )" || true
+            echo ""
+            echo "All recent commits:"
+            git log --oneline -n 3
+            echo ""
+            echo "E2E tests will be skipped for CI/CD related changes."
+          else
+            echo "✅ Feature commit detected - E2E tests will run"
+            echo "Recent commits:"
+            git log --oneline -n 3
+          fi
+          
+          echo "skip-e2e=$SKIP_E2E" >> $GITHUB_OUTPUT
+          echo "commit-type=$COMMIT_TYPE" >> $GITHUB_OUTPUT
+          echo "Final E2E skip setting: $SKIP_E2E"
+
+  notify-e2e-skip:
+    name: E2E Tests Skipped
+    runs-on: ubuntu-latest
+    needs: [check-commit-type]
+    if: needs.check-commit-type.outputs.skip-e2e == 'true'
+    steps:
+      - name: Notify E2E skip
+        run: |
+          echo "🔧 E2E Tests Skipped for CI/Chore Commit"
+          echo "Commit type detected: ${{ needs.check-commit-type.outputs.commit-type }}"
+          echo ""
+          echo "💡 E2E tests are skipped for commits that:"
+          echo "   - Start with 'ci' (continuous integration changes)"
+          echo "   - Start with 'chore' (maintenance/housekeeping tasks)"
+          echo ""
+          echo "This speeds up CI/CD pipeline for GitHub Actions changes that don't affect application functionality."
+
   e2e-tests:
     name: E2E Tests
     uses: ./.github/workflows/e2e.yml
-    needs: [lint, typecheck]
+    needs: [check-commit-type]
+    if: needs.check-commit-type.outputs.skip-e2e != 'true'
     with:
       environment: 'development'
       fail_on_error: true  # Blocking: fail the pipeline if e2e tests fail
@@ -69,7 +132,8 @@ jobs:
   build:
     name: Build Project
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, e2e-tests]
+    needs: [lint, typecheck, check-commit-type, e2e-tests]
+    if: always() && needs.lint.result == 'success' && needs.typecheck.result == 'success' && (needs.e2e-tests.result == 'success' || needs.e2e-tests.result == 'skipped')
     outputs:
       artifacts-uploaded: ${{ steps.check-upload.outputs.artifacts-uploaded }}
     steps:
@@ -156,8 +220,8 @@ jobs:
   deploy:
     name: Deploy to Sandbox
     runs-on: ubuntu-latest
-    needs: [build, check-debug-flag]
-    if: always() && needs.build.result == 'success' && (needs.check-debug-flag.result == 'success' || needs.check-debug-flag.result == 'skipped')
+    needs: [build, check-debug-flag, check-commit-type]
+    if: always() && needs.build.result == 'success' && (needs.check-debug-flag.result == 'success' || needs.check-debug-flag.result == 'skipped') && (needs.check-commit-type.result == 'success' || needs.check-commit-type.result == 'skipped')
     outputs:
       deployment-url: ${{ steps.deploy.outputs.deployment-url }}
       deployment-skipped: ${{ steps.deploy.outputs.deployment-skipped }}
@@ -203,6 +267,33 @@ jobs:
             This preview will be updated automatically when you push new commits to this PR.
 
             > **Note:** The sandbox deployment is for preview purposes only and may be cleaned up periodically.`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Comment on PR about E2E skip
+        if: github.event_name == 'pull_request' && needs.check-commit-type.outputs.skip-e2e == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commitType = '${{ needs.check-commit-type.outputs.commit-type }}';
+
+            const comment = `## ⚡ E2E Tests Skipped
+
+            E2E tests were skipped for this CI/Chore commit to speed up the pipeline.
+
+            **Reason:** Detected commit type: \`${commitType}\`
+            **Commit:** \`${{ github.event.pull_request.head.sha }}\`
+
+            E2E tests are automatically skipped for commits that start with:
+            - \`ci\` (continuous integration changes)  
+            - \`chore\` (maintenance/housekeeping tasks)
+
+            > This optimization reduces pipeline time for GitHub Actions changes that don't affect application functionality.`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
