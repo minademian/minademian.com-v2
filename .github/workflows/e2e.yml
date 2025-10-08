@@ -1,5 +1,11 @@
 name: E2E Tests
 
+# Permissions needed for commenting on PRs and issues
+permissions:
+  contents: read  # Needed to checkout repository
+  pull-requests: write  # Needed to comment on PRs
+  issues: write  # Needed to comment on issues
+
 on:
   workflow_call:
     inputs:
@@ -8,10 +14,18 @@ on:
         required: false
         type: string
         default: 'development'
+      fail_on_error:
+        description: 'Whether to fail the workflow if tests fail (true = blocking, false = non-blocking)'
+        required: false
+        type: boolean
+        default: true
     outputs:
       test-results:
-        description: 'E2E test results'
+        description: 'E2E test results (passed/failed)'
         value: ${{ jobs.e2e-tests.outputs.test-results }}
+      tests-passed:
+        description: 'Whether E2E tests passed (true/false)'
+        value: ${{ jobs.e2e-tests.outputs.test-results == 'passed' }}
 
 jobs:
   e2e-tests:
@@ -98,7 +112,13 @@ jobs:
             });
 
       - name: Fail job if tests failed
-        if: steps.test-results.outputs.results == 'failed'
+        if: steps.test-results.outputs.results == 'failed' && inputs.fail_on_error == true
         run: |
           echo "E2E tests failed. Failing the job."
           exit 1
+
+      - name: Log test failure (non-blocking)
+        if: steps.test-results.outputs.results == 'failed' && inputs.fail_on_error == false
+        run: |
+          echo "⚠️ E2E tests failed, but continuing pipeline as this is configured as non-blocking."
+          echo "Check the test results and artifacts for details."

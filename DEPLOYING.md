@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers all deployment scenarios for the minademian.com website, including production releases, sandbox previews, and the automated release system.
+This guide covers all deployment scenarios for the minademian.com website, including production releases, sandbox previews, and the sophisticated automated CI/CD pipeline with recent optimizations.
 
 ## Deployment Targets
 
@@ -29,6 +29,143 @@ This guide covers all deployment scenarios for the minademian.com website, inclu
 - **Purpose**: Feature branch previews and testing
 - **Trigger**: Pull requests and feature branch pushes
 - **Cleanup**: Periodic (manual cleanup required)
+
+## 🔄 CI/CD Pipeline
+
+This project features a sophisticated deployment system with automated testing, building, and multi-environment deployments with recent optimizations for performance and debugging.
+
+### Workflows Overview
+
+| Workflow | Trigger | Purpose | Deployment Target |
+|----------|---------|---------|-------------------|
+| **Feature Branch** | Push to `feat/*`, `fix/*`, etc. | Testing + Sandbox Preview | `sandbox/{branch-name}/` |
+| **Release** | PR merge to `main` | Production Deployment | `releases/{version}/` + `latest/` |
+
+### Feature Branch Workflow (`feature-branch.yml`)
+
+#### Recent Enhancements:
+- ✅ **Smart E2E Optimization**: E2E tests automatically skipped for `ci` and `chore` commits
+- ✅ **Configurable Debug Output**: Enable detailed logging via commit message `[DEBUG_DEPLOYMENT_INFORMATION]`
+- ✅ **Consolidated Actions**: Unified deployment through `deploy-to-remote-server` action
+- ✅ **Enhanced Error Handling**: Comprehensive failure notifications and PR comments
+
+#### Key Features:
+- **Automated Testing**: Linting, type checking, conditional E2E tests, build verification
+- **Fail-Fast**: E2E tests run before build - failures prevent deployment
+- **Sandbox Deployment**: Branch-specific preview environments
+- **PR Comments**: Automatic preview links and test results in pull requests
+- **Smart Optimization**: Early exit if build artifacts fail
+
+#### E2E Test Optimization:
+Commits starting with `ci` or `chore` automatically skip E2E tests to speed up CI/CD pipelines:
+```
+ci: update workflow syntax           ← Skips E2E
+chore: update dependencies          ← Skips E2E
+feat: add new component            ← Runs E2E
+fix: resolve navigation bug        ← Runs E2E
+```
+
+### Production Deployment (`release.yml`)
+
+#### Recent Enhancements:
+- 🎛️ **Manual Debug Toggle**: Dropdown option in workflow dispatch for debug output
+- 🔧 **Consolidated Jobs**: Removed duplicate `configure` job, enhanced `deploy-to-remote-server`
+- 🔄 **Improved Job Order**: Logical flow: `create-tag` → `deploy` → `publish-release`
+- 📋 **Enhanced Debugging**: Comprehensive deployment information when enabled
+
+#### Key Features:
+- **Semantic Versioning**: Automatic version calculation from PR content
+- **Release Archives**: Permanent versioned deployments
+- **Symlink Management**: Zero-downtime updates via `latest/` pointer
+- **Security**: SSH key-based authentication with dedicated CI/CD keys
+- **Manual Override**: Workflow dispatch for emergency deployments
+
+### Configurable Debug Output
+
+#### For Manual Deployments:
+1. Go to **Actions** → **Release and Deploy**
+2. Set **Enable Debug Output**: `true`
+3. View comprehensive deployment information in logs
+
+#### For Automatic Deployments:
+Include `[DEBUG_DEPLOYMENT_INFORMATION]` in any recent commit message:
+```bash
+git commit -m "fix: resolve deployment issue [DEBUG_DEPLOYMENT_INFORMATION]"
+```
+
+### Supported Branch Patterns
+
+```
+feat/*      # New features
+fix/*       # Bug fixes
+chore/*     # Maintenance tasks (E2E skipped)
+ci/*        # CI/CD changes (E2E skipped)
+refactor/*  # Code refactoring
+docs/*      # Documentation updates
+test/*      # Test additions/updates
+style/*     # Code style changes
+perf/*      # Performance improvements
+```
+
+### Shared Actions Architecture
+
+Recent consolidation created focused, reusable actions:
+
+- **`create-git-tag`**: Semantic versioning and tag creation
+- **`deploy-to-remote-server`**: Unified deployment with multi-mode support
+- **`create-github-release`**: GitHub release creation with deployment info
+- **`configure-deployment`**: Environment-aware configuration with debug support
+- **`prepare-release`**: Orchestrates release preparation workflow
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+The application uses Next.js built-in environment handling. Create `.env.local` for local development:
+
+```bash
+# Local development overrides (not committed)
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+### GitHub Secrets (Required for Deployment)
+
+These secrets must be configured in your GitHub repository settings:
+
+```bash
+# Server Connection
+SFTP_HOST=your-server.com
+SFTP_USERNAME=deploy-user
+SFTP_PASSWORD=secure-password  # Or use SSH keys
+DEPLOY_BASE_PATH=/home/user/minademian.com
+
+# Optional: SSH Key Authentication (recommended)
+SSH_PRIVATE_KEY=your-ssh-private-key
+SSH_KNOWN_HOSTS=your-server-known-hosts
+```
+
+### Server Setup Requirements
+
+Your deployment server must have:
+
+1. **SSH/SFTP Access**: For file transfers and symlink management
+2. **Web Server**: Nginx, Apache, or similar serving static files
+3. **Directory Structure**:
+   ```
+   /home/user/minademian.com/
+   ├── latest/           # Symlink to current release
+   ├── staging/          # Manual staging deployment
+   ├── releases/         # Versioned releases
+   │   ├── v1.0.0/
+   │   ├── v1.1.0/
+   │   └── v1.2.0/
+   └── sandbox/          # Feature branch previews
+       ├── feat-new-component/
+       └── fix-navigation/
+   ```
+
+4. **Permissions**: Write access for deployment user
+5. **Symlink Support**: For zero-downtime deployments
 
 ## Deployment Workflows
 

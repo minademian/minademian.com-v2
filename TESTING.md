@@ -1,6 +1,22 @@
-# Playwright End-to-End Testing
+# Testing Guide
 
-This project now includes Playwright for comprehensive end-to-end testing.
+This project uses a comprehensive testing approach combining **End-to-End (E2E)** and **Behavior-Driven Development (BDD)** testing with Playwright and Cucumber.
+
+## 🧪 Testing Strategy Overview
+
+### E2E Testing (Playwright)
+- **Cross-browser**: Chromium, Firefox, WebKit
+- **CI Integration**: Automated testing in all workflows with smart optimizations
+- **Interactive UI**: Debug mode with `pnpm test:e2e:ui`
+- **Performance**: E2E tests automatically skipped for `ci` and `chore` commits
+
+### BDD Testing (Cucumber)
+- **Gherkin Syntax**: Human-readable test scenarios
+- **TypeScript Support**: Strongly-typed step definitions with Playwright integration
+- **ES Module Compatible**: Uses Node.js 20 with `"type": "module"`
+- **Feature Coverage**: Homepage, navigation, responsive design, dark mode
+
+## 🎭 Playwright End-to-End Testing
 
 ## Running Tests
 
@@ -102,9 +118,18 @@ You can also run the E2E workflow manually from the GitHub Actions tab with cust
 
 ---
 
-# Cucumber BDD Testing
+# 🥒 Cucumber BDD Testing
 
-This project includes Cucumber for Behavior-Driven Development (BDD) testing, allowing you to write human-readable test scenarios.
+This project includes comprehensive Behavior-Driven Development (BDD) testing with Cucumber, featuring TypeScript support and Playwright integration for human-readable test scenarios.
+
+## BDD Features & Capabilities
+
+- **Gherkin Syntax**: Human-readable test scenarios for stakeholders
+- **TypeScript Support**: Strongly-typed step definitions with full IDE support
+- **Playwright Integration**: Leverages Playwright's powerful testing capabilities
+- **ES Module Compatible**: Modern Node.js 20 with `"type": "module"` support
+- **Feature Coverage**: Homepage, navigation, responsive design, dark mode, about page
+- **Tag Support**: Organize tests with `@smoke`, `@navigation`, `@homepage` tags
 
 ## Running BDD Tests
 
@@ -223,6 +248,79 @@ BDD tests are configured via `cucumber.config.js`:
 2. **Run Tests**: `pnpm test:cucumber:watch` (will show missing steps)
 3. **Implement Steps**: Add step definitions in TypeScript
 4. **Implement Code**: Write actual application code to make tests pass
+
+## ⚡ CI/CD Testing Optimizations
+
+### Smart E2E Test Skipping
+
+E2E tests are automatically optimized for CI/CD performance:
+
+**Tests SKIPPED for commits starting with:**
+- `ci:` - Continuous integration changes
+- `chore:` - Maintenance/housekeeping tasks
+
+**Tests RUN for commits starting with:**
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `refactor:` - Code refactoring
+- `test:` - Test additions/updates
+
+**Example commits:**
+```bash
+ci: update workflow syntax           ← Skips E2E
+chore: update dependencies          ← Skips E2E
+feat: add new component            ← Runs E2E
+fix: resolve navigation bug        ← Runs E2E
+```
+
+This optimization significantly reduces pipeline time for GitHub Actions changes while maintaining full coverage for application functionality.
+
+### PR Comments & Notifications
+
+- **E2E Skip Notification**: Automatic PR comment when tests are skipped
+- **Test Results**: Links to test reports and failure videos
+- **Preview Links**: Sandbox deployment URLs for manual testing
+
+## 🔧 System Requirements
+
+### Node.js Version
+- **Node.js 20+**: Required for Cucumber.js ES module compatibility
+- **Package Manager**: pnpm (recommended) or npm
+
+### Project Configuration
+- **ES Modules**: Project uses `"type": "module"` in package.json
+- **PostCSS Config**: Uses `.cjs` extension for Next.js compatibility
+- **TypeScript**: Strict type checking enabled for all test files
+
+### Browser Requirements
+- **Playwright**: Auto-installs Chromium, Firefox, WebKit browsers
+- **Headless Mode**: Default for CI/CD, headed mode available for local debugging
+
+## 🐛 Debugging & Troubleshooting
+
+### Common Issues
+
+1. **Module Resolution Errors**: Ensure Node.js 20+ and ES modules configured
+2. **Browser Launch Failures**: Run `pnpm exec playwright install`
+3. **Test Timeouts**: Increase timeout in test files or use `page.waitFor()`
+4. **CI Test Failures**: Check test artifacts and screenshots in GitHub Actions
+
+### Debug Commands
+
+```bash
+# Debug specific test file
+pnpm exec playwright test --debug tests/homepage.spec.ts
+
+# Run with verbose output
+pnpm test:e2e:debug
+
+# Generate test report
+pnpm test:e2e:report
+```
+
+---
+
+For deployment and CI/CD pipeline information, see **[DEPLOYING.md](./DEPLOYING.md)**.
 5. **Refactor**: Improve code while keeping tests green
 
 ### Best Practices

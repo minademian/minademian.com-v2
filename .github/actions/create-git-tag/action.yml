@@ -1,0 +1,188 @@
+name: 'Create Git Tag'
+description: 'Calculates next version, creates and pushes git tag based on PR or manual input'
+
+inputs:
+  event-name:
+    description: 'GitHub event name (pull_request, workflow_dispatch, etc.)'
+    required: true
+  release-type:
+    description: 'Release type for manual dispatch (major, minor, patch, none)'
+    required: false
+    default: 'none'
+  pr-title:
+    description: 'Pull request title'
+    required: false
+    default: ''
+  pr-body:
+    description: 'Pull request body'
+    required: false
+    default: ''
+  pr-merged:
+    description: 'Whether PR was merged (true/false)'
+    required: false
+    default: 'false'
+  manual-tag:
+    description: 'Manual tag to use (for manual deployments of existing tags)'
+    required: false
+    default: ''
+  deployment-type:
+    description: 'Deployment type (manual_tag_deploy, auto, etc.)'
+    required: false
+    default: 'auto'
+  github-token:
+    description: 'GitHub token for pushing tags'
+    required: true
+
+outputs:
+  should-create-release:
+    description: 'Whether a release should be created'
+    value: ${{ steps.check.outputs.should-create-release }}
+  release-type:
+    description: 'Type of release (major, minor, patch, manual)'
+    value: ${{ steps.check.outputs.release-type }}
+  new-tag:
+    description: 'The new or existing tag'
+    value: ${{ steps.create-tag.outputs.new-tag || steps.use-manual-tag.outputs.new-tag }}
+  is-manual-release:
+    description: 'Whether this is a manual release of existing tag'
+    value: ${{ steps.check.outputs.is-manual-release }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Check if release should be created
+      id: check
+      shell: bash
+      run: |
+        SHOULD_CREATE="false"
+        RELEASE_TYPE="none"
+        IS_MANUAL="false"
+
+        echo "🔍 Checking release requirements..."
+        echo "Event: ${{ inputs.event-name }}"
+        echo "Deployment type: ${{ inputs.deployment-type }}"
+
+        # Check for manual release deployment (workflow dispatch with manual_tag_deploy)
+        if [ "${{ inputs.event-name }}" = "workflow_dispatch" ] && [ "${{ inputs.deployment-type }}" = "manual_tag_deploy" ]; then
+          SHOULD_CREATE="true"
+          RELEASE_TYPE="manual"
+          IS_MANUAL="true"
+          echo "✅ Manual tag deployment release requested"
+        # Check for release type in workflow input (automatic release via manual dispatch)
+        elif [ "${{ inputs.event-name }}" = "workflow_dispatch" ] && [ "${{ inputs.release-type }}" != "none" ]; then
+          RELEASE_TYPE="${{ inputs.release-type }}"
+          SHOULD_CREATE="true"
+          echo "✅ Manual release requested: $RELEASE_TYPE"
+        # Check for release type in PR title and body (merged PR)
+        elif [ "${{ inputs.event-name }}" = "pull_request" ] && [ "${{ inputs.pr-merged }}" = "true" ]; then
+          PR_TITLE="${{ inputs.pr-title }}"
+          PR_BODY="${{ inputs.pr-body }}"
+          PR_TEXT="$PR_TITLE $PR_BODY"
+
+          echo "🔍 Checking PR for release type..."
+          echo "PR Title: $PR_TITLE"
+
+          if echo "$PR_TEXT" | grep -qE "\[(major|minor|patch)\]"; then
+            RELEASE_TYPE=$(echo "$PR_TEXT" | grep -oE "\[(major|minor|patch)\]" | head -1 | tr -d '[]')
+            SHOULD_CREATE="true"
+            echo "✅ Release type found in PR text: $RELEASE_TYPE"
+          elif echo "$PR_TEXT" | grep -qE "(#major|#minor|#patch)"; then
+            RELEASE_TYPE=$(echo "$PR_TEXT" | grep -oE "#(major|minor|patch)" | head -1 | tr -d '#')
+            SHOULD_CREATE="true"
+            echo "✅ Release type found in PR text: $RELEASE_TYPE"
+          elif echo "$PR_TEXT" | grep -qiE "(major release|minor release|patch release)"; then
+            if echo "$PR_TEXT" | grep -qiE "major release"; then
+              RELEASE_TYPE="major"
+            elif echo "$PR_TEXT" | grep -qiE "minor release"; then
+              RELEASE_TYPE="minor"
+            elif echo "$PR_TEXT" | grep -qiE "patch release"; then
+              RELEASE_TYPE="patch"
+            fi
+            SHOULD_CREATE="true"
+            echo "✅ Release type found in PR text: $RELEASE_TYPE"
+          else
+            # Default to major release for merged PRs without explicit version type
+            RELEASE_TYPE="major"
+            SHOULD_CREATE="true"
+            echo "⚠️ No release type specified - defaulting to major release"
+          fi
+        fi
+
+        echo "should-create-release=$SHOULD_CREATE" >> $GITHUB_OUTPUT
+        echo "release-type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+        echo "is-manual-release=$IS_MANUAL" >> $GITHUB_OUTPUT
+
+    - name: Get latest tag
+      id: latest-tag
+      if: steps.check.outputs.should-create-release == 'true' && steps.check.outputs.is-manual-release != 'true'
+      shell: bash
+      run: |
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        echo "latest-tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        echo "📋 Latest tag: $LATEST_TAG"
+
+    - name: Calculate next version
+      id: next-version
+      if: steps.check.outputs.should-create-release == 'true' && steps.check.outputs.is-manual-release != 'true'
+      shell: bash
+      run: |
+        LATEST_TAG="${{ steps.latest-tag.outputs.latest-tag }}"
+        RELEASE_TYPE="${{ steps.check.outputs.release-type }}"
+
+        # Remove 'v' prefix for calculation
+        VERSION=${LATEST_TAG#v}
+
+        # Split version into parts
+        IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
+        MAJOR=${VERSION_PARTS[0]:-0}
+        MINOR=${VERSION_PARTS[1]:-0}
+        PATCH=${VERSION_PARTS[2]:-0}
+
+        # Calculate new version based on release type
+        case $RELEASE_TYPE in
+          major)
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            ;;
+          minor)
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            ;;
+          patch)
+            PATCH=$((PATCH + 1))
+            ;;
+        esac
+
+        NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+        echo "next-version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "🏷️ Next version: $NEW_VERSION"
+
+    - name: Create and push tag
+      id: create-tag
+      if: steps.check.outputs.should-create-release == 'true' && steps.check.outputs.is-manual-release != 'true'
+      shell: bash
+      run: |
+        NEW_TAG="${{ steps.next-version.outputs.next-version }}"
+
+        # Configure git
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+        # Create and push tag
+        git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
+        git push origin "$NEW_TAG"
+
+        echo "new-tag=$NEW_TAG" >> $GITHUB_OUTPUT
+        echo "✅ Created and pushed tag: $NEW_TAG"
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+
+    - name: Use manual tag
+      id: use-manual-tag
+      if: steps.check.outputs.should-create-release == 'true' && steps.check.outputs.is-manual-release == 'true'
+      shell: bash
+      run: |
+        MANUAL_TAG="${{ inputs.manual-tag }}"
+        echo "new-tag=$MANUAL_TAG" >> $GITHUB_OUTPUT
+        echo "🏷️ Using existing tag for manual release: $MANUAL_TAG"

@@ -1,0 +1,154 @@
+name: 'Prepare Release'
+description: 'Complete release preparation: creates git tag, deploys to server, and creates GitHub release'
+
+inputs:
+  # Event context
+  event-name:
+    description: 'GitHub event name (pull_request, workflow_dispatch, etc.)'
+    required: true
+  release-type:
+    description: 'Release type for manual dispatch (major, minor, patch, none)'
+    required: false
+    default: 'none'
+  deployment-type:
+    description: 'Deployment type (manual_tag_deploy, auto, etc.)'
+    required: false
+    default: 'auto'
+
+  # PR context (for automatic releases)
+  pr-title:
+    description: 'Pull request title'
+    required: false
+    default: ''
+  pr-body:
+    description: 'Pull request body'
+    required: false
+    default: ''
+  pr-merged:
+    description: 'Whether PR was merged (true/false)'
+    required: false
+    default: 'false'
+
+  # Manual deployment context
+  manual-tag:
+    description: 'Manual tag to use (for manual deployments of existing tags)'
+    required: false
+    default: ''
+  deploy-target:
+    description: 'Target environment (production, staging, etc.)'
+    required: false
+    default: 'production'
+
+  # Deployment configuration
+  ssh-host:
+    description: 'SSH host for deployment'
+    required: true
+  ssh-user:
+    description: 'SSH username'
+    required: true
+  ssh-password:
+    description: 'SSH password'
+    required: true
+  remote-path:
+    description: 'Remote path for deployment'
+    required: true
+  build-artifact-name:
+    description: 'Name of the build artifact to deploy'
+    required: false
+    default: 'build-files'
+
+  # GitHub context
+  github-token:
+    description: 'GitHub token for API access'
+    required: true
+  create-github-release:
+    description: 'Whether to create a GitHub release'
+    required: false
+    default: 'true'
+
+outputs:
+  should-create-release:
+    description: 'Whether a release should be created'
+    value: ${{ steps.create-tag.outputs.should-create-release }}
+  release-type:
+    description: 'Type of release (major, minor, patch, manual)'
+    value: ${{ steps.create-tag.outputs.release-type }}
+  new-tag:
+    description: 'The new or existing tag'
+    value: ${{ steps.create-tag.outputs.new-tag }}
+  is-manual-release:
+    description: 'Whether this is a manual release of existing tag'
+    value: ${{ steps.create-tag.outputs.is-manual-release }}
+  deployment-url:
+    description: 'URL of the deployed application'
+    value: ${{ steps.deploy.outputs.deployment-url }}
+  deployment-path:
+    description: 'Remote path where files were deployed'
+    value: ${{ steps.deploy.outputs.deployment-path }}
+  release-url:
+    description: 'URL of the created GitHub release'
+    value: ${{ steps.create-release.outputs.release-url }}
+  release-created:
+    description: 'Whether a GitHub release was created'
+    value: ${{ steps.create-release.outputs.release-created }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Create Git Tag
+      id: create-tag
+      uses: ./.github/actions/create-git-tag
+      with:
+        event-name: ${{ inputs.event-name }}
+        release-type: ${{ inputs.release-type }}
+        pr-title: ${{ inputs.pr-title }}
+        pr-body: ${{ inputs.pr-body }}
+        pr-merged: ${{ inputs.pr-merged }}
+        manual-tag: ${{ inputs.manual-tag }}
+        deployment-type: ${{ inputs.deployment-type }}
+        github-token: ${{ inputs.github-token }}
+
+    - name: Deploy to Remote Server
+      id: deploy
+      if: steps.create-tag.outputs.should-create-release == 'true'
+      uses: ./.github/actions/deploy-to-remote-server
+      with:
+        deployment-mode: ${{ steps.create-tag.outputs.is-manual-release == 'true' && 'manual' || 'automatic' }}
+        deployment-type: ${{ inputs.deployment-type == 'manual_tag_deploy' && 'release' || 'production' }}
+        git-tag: ${{ steps.create-tag.outputs.new-tag }}
+        build-artifact-name: ${{ inputs.build-artifact-name }}
+        ssh-host: ${{ inputs.ssh-host }}
+        ssh-username: ${{ inputs.ssh-user }}
+        ssh-password: ${{ inputs.ssh-password }}
+        base-path: ${{ inputs.remote-path }}
+        target-path: ${{ steps.create-tag.outputs.is-manual-release != 'true' && 'latest' || '' }}
+
+    - name: Create GitHub Release
+      id: create-release
+      if: steps.create-tag.outputs.should-create-release == 'true' && inputs.create-github-release == 'true'
+      uses: ./.github/actions/create-github-release
+      with:
+        tag: ${{ steps.create-tag.outputs.new-tag }}
+        title: ${{ steps.create-tag.outputs.is-manual-release == 'true' && format('Manual Release {0}', steps.create-tag.outputs.new-tag) || format('Release {0}', steps.create-tag.outputs.new-tag) }}
+        release-type: ${{ steps.create-tag.outputs.release-type }}
+        deploy-target: ${{ inputs.deploy-target }}
+        deployment-url: ${{ steps.deploy.outputs.deployment-url }}
+        github-token: ${{ inputs.github-token }}
+
+    - name: Summary
+      shell: bash
+      run: |
+        echo "🎉 Release preparation complete!"
+        echo "📋 Summary:"
+        echo "  Should create release: ${{ steps.create-tag.outputs.should-create-release }}"
+        echo "  Release type: ${{ steps.create-tag.outputs.release-type }}"
+        echo "  Tag: ${{ steps.create-tag.outputs.new-tag }}"
+        echo "  Is manual: ${{ steps.create-tag.outputs.is-manual-release }}"
+        if [ "${{ steps.create-tag.outputs.should-create-release }}" = "true" ]; then
+          echo "  Deployment URL: ${{ steps.deploy.outputs.deployment-url }}"
+          echo "  Deployment path: ${{ steps.deploy.outputs.deployment-path }}"
+          if [ "${{ inputs.create-github-release }}" = "true" ]; then
+            echo "  GitHub release created: ${{ steps.create-release.outputs.release-created }}"
+            echo "  GitHub release URL: ${{ steps.create-release.outputs.release-url }}"
+          fi
+        fi
