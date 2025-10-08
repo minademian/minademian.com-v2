@@ -151,11 +151,11 @@ jobs:
           SOURCE_HASH=$(find src app public -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.json" -o -name "*.md" -o -name "*.css" -o -name "*.scss" \) -exec sha256sum {} \; | sort | sha256sum | cut -d' ' -f1)
           CONFIG_HASH=$(cat package.json pnpm-lock.yaml next.config.mjs tailwind.config.ts tsconfig.json postcss.config.js 2>/dev/null | sha256sum | cut -d' ' -f1)
           BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
-          
+
           echo "source-hash=$SOURCE_HASH" >> $GITHUB_OUTPUT
           echo "config-hash=$CONFIG_HASH" >> $GITHUB_OUTPUT
           echo "cache-key=build-$BRANCH_NAME-$SOURCE_HASH-$CONFIG_HASH" >> $GITHUB_OUTPUT
-          
+
           echo "🔑 Build cache key components:"
           echo "   Branch: $BRANCH_NAME"
           echo "   Source hash: $SOURCE_HASH"
@@ -310,7 +310,7 @@ jobs:
 
             const cacheHit = '${{ needs.build.outputs.cache-hit }}';
             const buildStatus = cacheHit === 'true' ? '🚀 Build cache hit (fast deployment)' : '🏗️ Fresh build (cached for future runs)';
-            
+
             const comment = `## 🔍 Feature Branch Preview
 
             Your changes have been deployed to the sandbox environment!
