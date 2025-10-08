@@ -129,6 +129,7 @@ jobs:
     with:
       environment: 'production'
       fail_on_error: true  # Blocking: fail the pipeline if e2e tests fail
+      skip-e2e: 'false'
 
   build:
     name: Build Project
