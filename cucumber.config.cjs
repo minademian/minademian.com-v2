@@ -6,7 +6,7 @@ module.exports = defineConfig({
 
   // Step definitions and support files
   require: [
-    'features/step-definitions/**/*.ts',
+    'features/step-definitions/**/*.js',
     'features/support/**/*.ts',
   ],
 

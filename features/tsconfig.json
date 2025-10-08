@@ -10,7 +10,7 @@
     "moduleResolution": "node"
   },
   "include": [
-    "features/**/*"
+    "./**/*"
   ],
   "exclude": [
     "node_modules"
