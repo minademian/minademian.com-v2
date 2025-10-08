@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 30
     outputs:
       test-results: ${{ steps.test-results.outputs.results }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -55,6 +55,7 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+          if-no-files-found: ignore
 
       - name: Upload test videos
         uses: actions/upload-artifact@v4
@@ -63,6 +64,7 @@ jobs:
           name: playwright-videos-${{ github.run_id }}
           path: test-results/*/video.webm
           retention-days: 7
+          if-no-files-found: ignore
 
       - name: Comment PR with test results
         if: github.event_name == 'pull_request' && always()
@@ -71,23 +73,23 @@ jobs:
           script: |
             const testResults = '${{ steps.test-results.outputs.results }}';
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            
+
             let body;
             if (testResults === 'passed') {
               body = `✅ **E2E Tests Passed**
-              
+
               All end-to-end tests are passing successfully!
-              
+
               [View full test report](${runUrl})`;
             } else {
               body = `❌ **E2E Tests Failed**
-              
+
               Some end-to-end tests are failing. Please check the test results and fix any issues before merging.
-              
+
               [View full test report](${runUrl})
               [Download test artifacts](${runUrl}#artifacts)`;
             }
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
