@@ -52,6 +52,7 @@ jobs:
           echo "   - Start with 'docs' (documentation changes)"
           echo ""
           echo "This speeds up CI/CD pipeline for GitHub Actions changes that don't affect application functionality."
+          echo "results=skipped" >> $GITHUB_OUTPUT
 
       - name: Checkout repository
         if: inputs.skip-e2e != true
