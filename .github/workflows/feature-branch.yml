@@ -77,9 +77,9 @@ jobs:
         run: |
           SKIP_E2E="false"
           COMMIT_TYPE="feature"
-          
+
           echo "🔍 Checking recent commit messages for CI/Chore patterns..."
-          
+
           # Check the last 3 commits for ci or chore patterns
           if git log --oneline -n 3 | grep -qiE "(^[a-f0-9]+ )?(ci|chore)(\(|:| )"; then
             SKIP_E2E="true"
@@ -98,7 +98,7 @@ jobs:
             echo "Recent commits:"
             git log --oneline -n 3
           fi
-          
+
           echo "skip-e2e=$SKIP_E2E" >> $GITHUB_OUTPUT
           echo "commit-type=$COMMIT_TYPE" >> $GITHUB_OUTPUT
           echo "Final E2E skip setting: $SKIP_E2E"
@@ -290,7 +290,7 @@ jobs:
             **Commit:** \`${{ github.event.pull_request.head.sha }}\`
 
             E2E tests are automatically skipped for commits that start with:
-            - \`ci\` (continuous integration changes)  
+            - \`ci\` (continuous integration changes)
             - \`chore\` (maintenance/housekeeping tasks)
 
             > This optimization reduces pipeline time for GitHub Actions changes that don't affect application functionality.`;
