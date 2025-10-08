@@ -13,6 +13,7 @@
     "pre-commit-check": "pnpm run lint && pnpm run debug-ci",
     "prepare": "husky",
     "test:e2e": "playwright test",
+    "test:e2e:watch": "chokidar 'src/**/*.{ts,tsx,js,jsx}' 'e2e/**/*.{ts,tsx,js,jsx}' -c 'pnpm test:e2e' --initial",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report"
@@ -32,6 +33,7 @@
     "@typescript-eslint/eslint-plugin": "^8.46.0",
     "@typescript-eslint/parser": "^8.46.0",
     "autoprefixer": "^10.0.1",
+    "chokidar-cli": "^3.0.0",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "husky": "^9.1.7",
