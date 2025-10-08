@@ -22,7 +22,7 @@ on:
       skip-e2e:
         description: 'Whether to skip E2E tests (from commit type check)'
         required: true
-        type: boolean
+        type: string
         default: 'false'
     outputs:
       test-results:
