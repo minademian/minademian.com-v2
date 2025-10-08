@@ -2,6 +2,7 @@
 
 [![CI/CD Pipeline](https://github.com/minademian/minademian.com-v2/actions/workflows/feature-branch.yml/badge.svg)](https://github.com/minademian/minademian.com-v2/actions/workflows/feature-branch.yml)
 [![Production Deploy](https://github.com/minademian/minademian.com-v2/actions/workflows/release.yml/badge.svg)](https://github.com/minademian/minademian.com-v2/actions/workflows/release.yml)
+[![E2E Tests](https://github.com/minademian/minademian.com-v2/actions/workflows/e2e.yml/badge.svg)](https://github.com/minademian/minademian.com-v2/actions/workflows/e2e.yml)
 
 A modern, high-performance portfolio website built with Next.js 14 and TypeScript, featuring automated deployment pipelines and comprehensive CI/CD workflows.
 
@@ -14,12 +15,14 @@ A modern, high-performance portfolio website built with Next.js 14 and TypeScrip
 - **Styling**: Tailwind CSS + Custom SCSS modules  
 - **Package Manager**: pnpm for efficient dependency management
 - **Build**: Static site generation (SSG) with optimized output
+- **Testing**: End-to-end testing with Playwright (Chromium, Firefox, WebKit)
 - **Deployment**: Multi-environment with automated CI/CD
 
 ## 📋 Documentation
 
 - **[CHANGELOG.md](./CHANGELOG.md)** - Project history and version updates
 - **[DEPLOYING.md](./DEPLOYING.md)** - Comprehensive deployment guide and workflows
+- **[TESTING.md](./TESTING.md)** - End-to-end testing setup, usage, and CI/CD integration
 
 ## 🚀 Quick Start
 
@@ -47,12 +50,21 @@ Visit [http://localhost:3000](http://localhost:3000) to view the application.
 ### Available Scripts
 
 ```bash
+# Development
 pnpm dev          # Start development server
 pnpm build        # Build for production
 pnpm start        # Start production server
+
+# Code Quality
 pnpm lint         # Run ESLint
 pnpm lint:fix     # Fix linting issues
 pnpm type-check   # Run TypeScript compiler check
+
+# Testing
+pnpm test:e2e         # Run end-to-end tests
+pnpm test:e2e:ui      # Run tests in interactive UI mode
+pnpm test:e2e:debug   # Run tests in debug mode
+pnpm test:e2e:report  # Show test report
 ```
 
 ## 🔄 CI/CD Pipeline
@@ -68,9 +80,10 @@ This project features a sophisticated deployment system with automated testing, 
 
 ### Feature Branch Workflow
 
-- ✅ **Automated Testing**: Linting, type checking, build verification
+- ✅ **Automated Testing**: Linting, type checking, **E2E tests**, build verification
+- ✅ **Fail-Fast**: E2E tests run before build - failures prevent deployment
 - ✅ **Sandbox Deployment**: Branch-specific preview environments
-- ✅ **PR Comments**: Automatic preview links in pull requests
+- ✅ **PR Comments**: Automatic preview links and test results in pull requests
 - ✅ **Smart Optimization**: Early exit if build artifacts fail
 - ✅ **Error Handling**: Comprehensive failure notifications
 
