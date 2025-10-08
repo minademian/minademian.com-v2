@@ -23,8 +23,8 @@ test.describe('About Page', () => {
 
     // Check for key profile content
     await expect(page.getByText(/My name is Mina Demian/)).toBeVisible();
-    await expect(page.getByText(/experienced front-end engineer/)).toBeVisible();
-    await expect(page.getByText(/7 years of experience/)).toBeVisible();
+    await expect(page.getByText(/AI-empowered software engineer/)).toBeVisible();
+    await expect(page.getByText(/Skilled in backend development, full\-stack architecture, and technical leadership/)).toBeVisible();
 
     // Check for philosophy and approach content
     await expect(page.getByText(/code and technology are tools/)).toBeVisible();
