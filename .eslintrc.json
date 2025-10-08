@@ -96,7 +96,7 @@
         "code": 120
       }
     ],
-    "no-trailing-spaces": "warn",
+    "no-trailing-spaces": "error",
     "no-multiple-empty-lines": [
       "warn",
       {
