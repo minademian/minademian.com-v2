@@ -89,13 +89,13 @@ jobs:
           echo "commit-type=$COMMIT_TYPE" >> $GITHUB_OUTPUT
           echo "Final E2E skip setting: $SKIP_E2E"
 
-  notify-e2e-skip:
-    name: E2E Tests Skipped
+  e2e-tests:
+    name: E2E Tests
     runs-on: ubuntu-latest
     needs: [check-commit-type]
-    if: needs.check-commit-type.outputs.skip-e2e == 'true'
     steps:
       - name: Notify E2E skip
+        if: needs.check-commit-type.outputs.skip-e2e == 'true'
         run: |
           echo "🔧 E2E Tests Skipped for CI/Chore Commit"
           echo "Commit type detected: ${{ needs.check-commit-type.outputs.commit-type }}"
@@ -103,17 +103,16 @@ jobs:
           echo "💡 E2E tests are skipped for commits that:"
           echo "   - Start with 'ci' (continuous integration changes)"
           echo "   - Start with 'chore' (maintenance/housekeeping tasks)"
+          echo "   - Start with 'docs' (documentation changes)"
           echo ""
           echo "This speeds up CI/CD pipeline for GitHub Actions changes that don't affect application functionality."
 
-  e2e-tests:
-    name: E2E Tests
-    uses: ./.github/workflows/e2e.yml
-    needs: [check-commit-type]
-    if: needs.check-commit-type.outputs.skip-e2e != 'true'
-    with:
-      environment: 'development'
-      fail_on_error: true  # Blocking: fail the pipeline if e2e tests fail
+      - name: Run E2E Tests
+        if: needs.check-commit-type.outputs.skip-e2e != 'true'
+        uses: ./.github/workflows/e2e.yml
+        with:
+          environment: 'development'
+          fail_on_error: true  # Blocking: fail the pipeline if e2e tests fail
 
   build:
     name: Build Project
