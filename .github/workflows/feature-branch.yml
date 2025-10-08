@@ -181,19 +181,19 @@ jobs:
           script: |
             const previewUrl = '${{ needs.configure-sandbox.outputs.deployment-url }}';
             const branchName = '${{ needs.configure-sandbox.outputs.branch-name }}';
-            
+
             const comment = `## 🔍 Feature Branch Preview
-            
+
             Your changes have been deployed to the sandbox environment!
-            
+
             **Preview URL:** ${previewUrl}
             **Branch:** \`${branchName}\`
             **Commit:** \`${{ github.event.pull_request.head.sha }}\`
-            
+
             This preview will be updated automatically when you push new commits to this PR.
-            
+
             > **Note:** The sandbox deployment is for preview purposes only and may be cleaned up periodically.`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -224,21 +224,21 @@ jobs:
         with:
           script: |
             const comment = `## ⚠️ Sandbox Deployment Skipped
-            
+
             The sandbox deployment was skipped because no build artifacts were generated.
-            
+
             **Possible causes:**
             - Next.js configuration missing \`output: "export"\`
             - Build command failed during execution
             - Build outputs to a different directory than \`out/\`
-            
+
             **To fix:**
             1. Check the build logs in the "Build Project" job
             2. Ensure your \`next.config.js\` includes \`output: "export"\`
             3. Verify the build command completes successfully
-            
+
             Once fixed, push another commit to trigger a new deployment.`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
