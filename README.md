@@ -12,7 +12,7 @@ A modern, high-performance portfolio website built with Next.js 14 and TypeScrip
 
 - **Framework**: Next.js 14 with App Router
 - **Language**: TypeScript with strict type checking
-- **Styling**: Tailwind CSS + Custom SCSS modules  
+- **Styling**: Tailwind CSS + Custom SCSS modules
 - **Package Manager**: pnpm for efficient dependency management
 - **Build**: Static site generation (SSG) with optimized output
 - **Testing**: End-to-end testing with Playwright (Chromium, Firefox, WebKit)
@@ -56,9 +56,9 @@ pnpm build        # Build for production
 pnpm start        # Start production server
 
 # Code Quality
-pnpm lint         # Run ESLint
-pnpm lint:fix     # Fix linting issues
-pnpm type-check   # Run TypeScript compiler check
+pnpm lint              # Run ESLint
+pnpm lint:fix-trailing # Fix trailing spaces only
+pnpm type-check        # Run TypeScript compiler check
 
 # Testing
 pnpm test:e2e         # Run end-to-end tests
@@ -98,7 +98,7 @@ This project features a sophisticated deployment system with automated testing, 
 
 ```
 feat/*      # New features
-fix/*       # Bug fixes  
+fix/*       # Bug fixes
 chore/*     # Maintenance tasks
 refactor/*  # Code refactoring
 docs/*      # Documentation updates
@@ -175,7 +175,7 @@ DEPLOY_BASE_PATH=/home/user/minademian.com
 ## 🔧 Technical Highlights
 
 - **Static Site Generation**: Optimized build output with trailing slashes
-- **Image Optimization**: Unoptimized for static hosting compatibility  
+- **Image Optimization**: Unoptimized for static hosting compatibility
 - **TypeScript**: Strict type checking with custom type definitions
 - **Code Quality**: ESLint + Prettier with automated formatting
 - **Performance**: Lighthouse-optimized with Core Web Vitals focus

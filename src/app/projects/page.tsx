@@ -27,9 +27,9 @@ export default function Projects() {
             <div className="col-span-12 2xs:col-span-6 2xs:mr-8">
               <Project
                 title="News Sifter"
-                summary="News Sifter will be a chatbot that will provide context for news articles. 
-                The user sends a news article and the bot checks it against a publicly available spreadsheet. 
-                Context returned is not provided as-is, a disclaimer will also be added. 
+                summary="News Sifter will be a chatbot that will provide context for news articles.
+                The user sends a news article and the bot checks it against a publicly available spreadsheet.
+                Context returned is not provided as-is, a disclaimer will also be added.
                 Built with React, TypeScript, Express, and Tailwind."
                 link="#"
                 github="https://github.com/minademian/newssifter"

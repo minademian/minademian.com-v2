@@ -2,7 +2,6 @@ import Image from 'next/image';
 
 import { SectionComponent } from '@/atoms/Section.component';
 import AnimatedText from '@/organisms/AnimatedText.component';
-
 import Experience from '@/organisms/Experience.component';
 import Skills from '@/organisms/Skills.component';
 import Studies from '@/organisms/Studies.component';

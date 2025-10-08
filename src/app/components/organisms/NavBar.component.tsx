@@ -1,16 +1,10 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import React, { useState } from 'react';
 
-import { motion } from 'framer-motion';
-
-import NavLink from '../molecules/NavLink.component';
-import MotionLink from '../molecules/MotionLink.component';
-import MobileNavLink from '../molecules/MobileNavLink.component';
 
 import useThemeSwitcher from '../../hooks/useThemeSwitcher';
-
-import Logo from './Logo.component';
 import {
   TwitterIcon,
   GitHubIcon,
@@ -18,6 +12,12 @@ import {
   SunIcon,
   MoonIcon,
 } from '../molecules/Icons.component';
+import MobileNavLink from '../molecules/MobileNavLink.component';
+import MotionLink from '../molecules/MotionLink.component';
+import NavLink from '../molecules/NavLink.component';
+
+import Logo from './Logo.component';
+
 
 const NavBar = () => {
   const [mode, setMode] = useThemeSwitcher();

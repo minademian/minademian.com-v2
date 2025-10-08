@@ -1,10 +1,10 @@
 'use client';
+import { AnimatePresence } from 'framer-motion';
 import { Montserrat } from 'next/font/google';
 import { usePathname } from 'next/navigation';
 import Script from 'next/script';
 import { useEffect, useState } from 'react';
 
-import { AnimatePresence } from 'framer-motion';
 
 import '@/styles/globals.css';
 
