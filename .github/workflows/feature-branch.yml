@@ -78,21 +78,21 @@ jobs:
           SKIP_E2E="false"
           COMMIT_TYPE="feature"
 
-          echo "🔍 Checking recent commit messages for CI/Chore patterns..."
+          echo "🔍 Checking recent commit messages for CI/Chore/Docs patterns..."
 
-          # Check the last 3 commits for ci or chore patterns
-          if git log --oneline -n 3 | grep -qiE "(^[a-f0-9]+ )?(ci|chore)(\(|:| )"; then
+          # Check the last 3 commits for ci, chore, or docs patterns
+          if git log --oneline -n 3 | grep -qiE "(^[a-f0-9]+ )?(ci|chore|docs)(\(|:| )"; then
             SKIP_E2E="true"
-            COMMIT_TYPE="ci-chore"
-            echo "🔧 CI/Chore commit detected - skipping E2E tests"
+            COMMIT_TYPE="ci-chore-docs"
+            echo "🔧 CI/Chore/Docs commit detected - skipping E2E tests"
             echo ""
             echo "Matching commits found:"
-            git log --oneline -n 3 | grep -iE "(^[a-f0-9]+ )?(ci|chore)(\(|:| )" || true
+            git log --oneline -n 3 | grep -iE "(^[a-f0-9]+ )?(ci|chore|docs)(\(|:| )" || true
             echo ""
             echo "All recent commits:"
             git log --oneline -n 3
             echo ""
-            echo "E2E tests will be skipped for CI/CD related changes."
+            echo "E2E tests will be skipped for CI/CD/documentation related changes."
           else
             echo "✅ Feature commit detected - E2E tests will run"
             echo "Recent commits:"
@@ -249,18 +249,24 @@ jobs:
           debug-enabled: ${{ needs.check-debug-flag.outputs.debug-enabled }}
 
       - name: Comment on PR with preview link
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.deploy.outputs.deployment-skipped != 'true'
         uses: actions/github-script@v7
         with:
           script: |
-            const previewUrl = '${{ needs.configure-sandbox.outputs.deployment-url }}';
-            const branchName = '${{ needs.configure-sandbox.outputs.branch-name }}';
+            const previewUrl = '${{ steps.deploy.outputs.deployment-url }}';
+            const branchName = '${{ steps.deploy.outputs.branch-name }}' || '${{ github.head_ref || github.ref_name }}';
+            
+            // Skip if deployment was skipped
+            if ('${{ steps.deploy.outputs.deployment-skipped }}' === 'true') {
+              console.log('Deployment was skipped, not posting preview comment');
+              return;
+            }
 
             const comment = `## 🔍 Feature Branch Preview
 
             Your changes have been deployed to the sandbox environment!
 
-            **Preview URL:** ${previewUrl}
+            **Preview URL:** ${previewUrl || 'Deployment in progress...'}
             **Branch:** \`${branchName}\`
             **Commit:** \`${{ github.event.pull_request.head.sha }}\`
 
