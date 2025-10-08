@@ -255,7 +255,7 @@ jobs:
           script: |
             const previewUrl = '${{ steps.deploy.outputs.deployment-url }}';
             const branchName = '${{ steps.deploy.outputs.branch-name }}' || '${{ github.head_ref || github.ref_name }}';
-            
+
             // Skip if deployment was skipped
             if ('${{ steps.deploy.outputs.deployment-skipped }}' === 'true') {
               console.log('Deployment was skipped, not posting preview comment');
