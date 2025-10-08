@@ -60,6 +60,17 @@ runs:
         echo "🏷️ Creating release for tag: $TAG"
         echo "📝 Release type: $RELEASE_TYPE"
 
+        # Defensive check: Verify tag exists before proceeding
+        if ! git rev-parse --verify "refs/tags/$TAG" >/dev/null 2>&1; then
+          echo "❌ Error: Tag '$TAG' does not exist in the repository"
+          echo "🔍 Available tags:"
+          git tag --list | head -10 || echo "No tags found"
+          echo "release-created=false" >> $GITHUB_OUTPUT
+          echo "release-url=" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+        echo "✅ Tag '$TAG' verified to exist"
+
         # Skip if release type is 'skip'
         if [ "$RELEASE_TYPE" = "skip" ]; then
           echo "⏭️ Skipping release creation"

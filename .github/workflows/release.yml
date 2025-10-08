@@ -61,35 +61,38 @@ on:
           - "true"
 
 jobs:
-  checkout-tag:
-    name: Checkout Selected Tag
+  create-git-tag:
+    name: Create Git Tag
     runs-on: ubuntu-latest
-    if: github.event.inputs.deployment_type == 'manual_tag_deploy'
     outputs:
-      ref: ${{ steps.set-ref.outputs.ref }}
-      tag: ${{ steps.set-ref.outputs.tag }}
+      deployment-ref: ${{ steps.prepare.outputs.deployment-ref }}
+      deployment-tag: ${{ steps.prepare.outputs.deployment-tag }}
+      should-create-release: ${{ steps.prepare.outputs.should-create-release }}
+      is-manual-deployment: ${{ steps.prepare.outputs.is-manual-deployment }}
+      release-type: ${{ steps.prepare.outputs.release-type }}
     steps:
-      - name: Set checkout reference
-        id: set-ref
-        run: |
-          if [ "${{ github.event.inputs.tag_to_deploy }}" != "" ]; then
-            echo "ref=${{ github.event.inputs.tag_to_deploy }}" >> $GITHUB_OUTPUT
-            echo "tag=${{ github.event.inputs.tag_to_deploy }}" >> $GITHUB_OUTPUT
-            echo "Deploying tag: ${{ github.event.inputs.tag_to_deploy }}"
-          else
-            echo "ref=${{ github.ref }}" >> $GITHUB_OUTPUT
-            echo "tag=current" >> $GITHUB_OUTPUT
-            echo "Deploying current ref: ${{ github.ref }}"
-          fi
-
-      - name: Checkout repository at tag
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.set-ref.outputs.ref }}
+          fetch-depth: 0
+
+      - name: Prepare Git tag
+        id: prepare
+        uses: ./.github/actions/prepare-git-tag
+        with:
+          event-name: ${{ github.event_name }}
+          deployment-type: ${{ github.event.inputs.deployment_type || 'auto' }}
+          tag-to-deploy: ${{ github.event.inputs.tag_to_deploy || '' }}
+          release-type: ${{ github.event.inputs.release_type || 'none' }}
+          pr-title: ${{ github.event.pull_request.title || '' }}
+          pr-body: ${{ github.event.pull_request.body || '' }}
+          pr-merged: ${{ github.event.pull_request.merged || 'false' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   lint:
     name: Code Linting
     runs-on: ubuntu-latest
+    needs: [create-git-tag]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -105,6 +108,7 @@ jobs:
   typecheck:
     name: Type Checking
     runs-on: ubuntu-latest
+    needs: [lint]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -124,12 +128,13 @@ jobs:
     if: github.event.inputs.deployment_type != 'manual_tag_deploy'
     with:
       environment: 'production'
-      fail_on_error: false  # Non-blocking: continue pipeline even if e2e tests fail
+      fail_on_error: true  # Blocking: fail the pipeline if e2e tests fail
 
   build:
     name: Build Project
     runs-on: ubuntu-latest
-    needs: [lint, typecheck]  # Depend on both lint and typecheck
+    needs: [lint, typecheck, e2e-tests]  # Wait for lint, typecheck AND e2e tests
+    if: always() && needs.lint.result == 'success' && needs.typecheck.result == 'success' && (needs.e2e-tests.result == 'success' || needs.e2e-tests.result == 'skipped')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -166,41 +171,11 @@ jobs:
           path: out/
           retention-days: 1
 
-  create-tag:
-    name: Create Release Tag
-    runs-on: ubuntu-latest
-    needs: [build]
-    if: always() && needs.build.result == 'success' && ((github.event_name == 'pull_request' && github.event.pull_request.merged == true) || (github.event_name == 'workflow_dispatch'))
-    outputs:
-      new-tag: ${{ steps.create-tag.outputs.new-tag }}
-      should-create-release: ${{ steps.create-tag.outputs.should-create-release }}
-      is-manual-release: ${{ steps.create-tag.outputs.is-manual-release }}
-      release-type: ${{ steps.create-tag.outputs.release-type }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
-          fetch-depth: 0
-
-      - name: Create Git Tag
-        id: create-tag
-        uses: ./.github/actions/create-git-tag
-        with:
-          event-name: ${{ github.event_name }}
-          release-type: ${{ github.event.inputs.release_type || 'none' }}
-          deployment-type: ${{ github.event.inputs.deployment_type || 'auto' }}
-          pr-title: ${{ github.event.pull_request.title || '' }}
-          pr-body: ${{ github.event.pull_request.body || '' }}
-          pr-merged: ${{ github.event.pull_request.merged || 'false' }}
-          manual-tag: ${{ github.event.inputs.tag_to_deploy || '' }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
   check-debug-flag:
     name: Check Debug Flag
     runs-on: ubuntu-latest
-    needs: [create-tag]
-    if: always() && (needs.create-tag.result == 'success' || needs.create-tag.result == 'skipped')
+    needs: [create-git-tag]
+    if: always() && (needs.create-git-tag.result == 'success' || needs.create-git-tag.result == 'skipped')
     outputs:
       debug-enabled: ${{ steps.check.outputs.debug-enabled }}
     steps:
@@ -243,8 +218,8 @@ jobs:
   deploy:
     name: Deploy to Server
     runs-on: ubuntu-latest
-    needs: [build, create-tag, check-debug-flag]
-    if: always() && needs.build.result == 'success' && (github.event.inputs.deployment_type == 'manual_tag_deploy' || needs.create-tag.result == 'success' || needs.create-tag.result == 'skipped') && (needs.check-debug-flag.result == 'success' || needs.check-debug-flag.result == 'skipped')
+    needs: [build, create-git-tag, check-debug-flag]
+    if: always() && needs.build.result == 'success' && (needs.create-git-tag.result == 'success' || needs.create-git-tag.result == 'skipped') && (needs.check-debug-flag.result == 'success' || needs.check-debug-flag.result == 'skipped')
     outputs:
       deployment-url: ${{ steps.deploy-website.outputs.deployment-url }}
       deployment-path: ${{ steps.deploy-website.outputs.deployment-path }}
@@ -262,7 +237,7 @@ jobs:
           event-name: ${{ github.event_name }}
           ref: ${{ github.ref }}
           ref-name: ${{ github.ref_name }}
-          git-tag: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || needs.create-tag.outputs.new-tag }}
+          git-tag: ${{ needs.create-git-tag.outputs.deployment-tag }}
           build-artifact-name: 'build-files'
           ssh-host: ${{ secrets.SFTP_HOST }}
           ssh-username: ${{ secrets.SFTP_USERNAME }}
@@ -273,16 +248,16 @@ jobs:
           tag-to-deploy: ${{ github.event.inputs.tag_to_deploy }}
           deploy-target: ${{ github.event.inputs.deploy_target }}
           create-github-release: ${{ github.event.inputs.create_github_release }}
-          create-tag-result: ${{ needs.create-tag.result }}
-          is-manual-release: ${{ needs.create-tag.outputs.is-manual-release }}
-          should-create-release: ${{ needs.create-tag.outputs.should-create-release }}
+          create-tag-result: ${{ needs.create-git-tag.result }}
+          is-manual-release: ${{ needs.create-git-tag.outputs.is-manual-deployment }}
+          should-create-release: ${{ needs.create-git-tag.outputs.should-create-release }}
           debug-enabled: ${{ needs.check-debug-flag.outputs.debug-enabled }}
 
   publish-release:
     name: Publish GitHub Release
     runs-on: ubuntu-latest
-    needs: [create-tag, deploy]
-    if: always() && needs.create-tag.outputs.should-create-release == 'true' && needs.deploy.result == 'success' && (github.event.inputs.create_github_release == 'true' || github.event.inputs.create_github_release == '')
+    needs: [create-git-tag, deploy]
+    if: always() && needs.create-git-tag.outputs.should-create-release == 'true' && needs.deploy.result == 'success' && (github.event.inputs.create_github_release == 'true' || github.event.inputs.create_github_release == '' || github.event_name == 'pull_request')
     outputs:
       release-url: ${{ steps.create-github-release.outputs.release-url }}
       release-created: ${{ steps.create-github-release.outputs.release-created }}
@@ -290,16 +265,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.create-tag.outputs.new-tag }}
+          ref: ${{ needs.create-git-tag.outputs.deployment-tag }}
           fetch-depth: 0
+
+      - name: Get commit hash for release
+        id: get-commit
+        run: |
+          COMMIT_HASH=$(git rev-parse HEAD)
+          echo "commit-hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+          echo "Using commit hash: $COMMIT_HASH"
 
       - name: Create GitHub Release
         id: create-github-release
         uses: ./.github/actions/create-github-release
         with:
-          tag: ${{ needs.create-tag.outputs.new-tag }}
-          title: ${{ needs.create-tag.outputs.is-manual-release == 'true' && format('Manual Release {0}', needs.create-tag.outputs.new-tag) || format('Release {0}', needs.create-tag.outputs.new-tag) }}
-          release-type: ${{ needs.create-tag.outputs.release-type }}
+          tag: ${{ needs.create-git-tag.outputs.deployment-tag }}
+          title: ${{ needs.create-git-tag.outputs.is-manual-deployment == 'true' && format('Manual Release {0}', needs.create-git-tag.outputs.deployment-tag) || format('Release {0}', needs.create-git-tag.outputs.deployment-tag) }}
+          release-type: ${{ needs.create-git-tag.outputs.release-type }}
+          target-ref: ${{ steps.get-commit.outputs.commit-hash }}
           deploy-target: ${{ github.event.inputs.deploy_target || 'production' }}
           deployment-url: ${{ needs.deploy.outputs.deployment-url }}
           github-token: ${{ secrets.GITHUB_TOKEN }}

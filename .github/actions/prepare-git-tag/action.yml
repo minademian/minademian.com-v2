@@ -1,0 +1,154 @@
+name: 'Prepare Deployment Context'
+description: 'Determines deployment reference and creates/validates tags for both manual and automatic deployments'
+
+inputs:
+  event-name:
+    description: 'GitHub event name (pull_request, workflow_dispatch, etc.)'
+    required: true
+  deployment-type:
+    description: 'Type of deployment (manual_tag_deploy, automatic_deploy, or auto for PR merge)'
+    required: false
+    default: 'auto'
+  tag-to-deploy:
+    description: 'Tag to deploy (for manual deployments)'
+    required: false
+    default: ''
+  release-type:
+    description: 'Release type for automatic deployments (major, minor, patch, none)'
+    required: false
+    default: 'none'
+  pr-title:
+    description: 'Pull request title'
+    required: false
+    default: ''
+  pr-body:
+    description: 'Pull request body'
+    required: false
+    default: ''
+  pr-merged:
+    description: 'Whether PR was merged (true/false)'
+    required: false
+    default: 'false'
+  github-token:
+    description: 'GitHub token for operations'
+    required: true
+
+outputs:
+  deployment-ref:
+    description: 'Reference to use for deployment (commit hash, tag, or branch)'
+    value: ${{ steps.determine-context.outputs.deployment-ref }}
+  deployment-tag:
+    description: 'Tag name for deployment (existing or newly created)'
+    value: ${{ steps.determine-context.outputs.is-manual-deployment == 'true' && steps.determine-context.outputs.deployment-tag || steps.finalize-auto.outputs.auto-tag }}
+  should-create-release:
+    description: 'Whether a GitHub release should be created'
+    value: ${{ steps.determine-context.outputs.is-manual-deployment == 'true' && steps.determine-context.outputs.should-create-release || steps.finalize-auto.outputs.auto-should-create-release }}
+  is-manual-deployment:
+    description: 'Whether this is a manual deployment of existing tag'
+    value: ${{ steps.determine-context.outputs.is-manual-deployment }}
+  release-type:
+    description: 'Type of release (major, minor, patch, manual, skip)'
+    value: ${{ steps.determine-context.outputs.is-manual-deployment == 'true' && steps.determine-context.outputs.release-type || steps.finalize-auto.outputs.auto-release-type }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Determine deployment context
+      id: determine-context
+      shell: bash
+      run: |
+        set -e
+
+        EVENT_NAME="${{ inputs.event-name }}"
+        DEPLOYMENT_TYPE="${{ inputs.deployment-type }}"
+        TAG_TO_DEPLOY="${{ inputs.tag-to-deploy }}"
+        RELEASE_TYPE="${{ inputs.release-type }}"
+
+        echo "🔍 Analyzing deployment context..."
+        echo "   Event: $EVENT_NAME"
+        echo "   Deployment Type: $DEPLOYMENT_TYPE"
+        echo "   Tag to Deploy: $TAG_TO_DEPLOY"
+        echo "   Release Type: $RELEASE_TYPE"
+
+        # Determine if this is a manual deployment
+        if [ "$DEPLOYMENT_TYPE" = "manual_tag_deploy" ]; then
+          echo "📋 Manual deployment detected"
+
+          # Validate tag exists
+          if [ -z "$TAG_TO_DEPLOY" ]; then
+            echo "❌ Tag to deploy not specified for manual deployment"
+            exit 1
+          fi
+
+          if ! git rev-parse "$TAG_TO_DEPLOY" >/dev/null 2>&1; then
+            echo "❌ Tag '$TAG_TO_DEPLOY' does not exist"
+            exit 1
+          fi
+
+          DEPLOYMENT_REF="$TAG_TO_DEPLOY"
+          DEPLOYMENT_TAG="$TAG_TO_DEPLOY"
+          SHOULD_CREATE_RELEASE="false"  # Don't auto-create release for manual deployments
+          IS_MANUAL_DEPLOYMENT="true"
+          FINAL_RELEASE_TYPE="manual"
+
+          echo "✅ Manual deployment configured:"
+          echo "   Deploying existing tag: $TAG_TO_DEPLOY"
+
+        else
+          echo "🤖 Automatic deployment detected"
+
+          # For automatic deployments, we need to create a new tag
+          # Use current ref as deployment reference
+          DEPLOYMENT_REF="${{ github.ref }}"
+          IS_MANUAL_DEPLOYMENT="false"
+
+          # Delegate tag creation to existing action
+          echo "🏷️ Creating new tag via create-git-tag action..."
+
+        fi
+
+        # Set outputs
+        echo "deployment-ref=$DEPLOYMENT_REF" >> $GITHUB_OUTPUT
+        echo "deployment-tag=$DEPLOYMENT_TAG" >> $GITHUB_OUTPUT
+        echo "should-create-release=$SHOULD_CREATE_RELEASE" >> $GITHUB_OUTPUT
+        echo "is-manual-deployment=$IS_MANUAL_DEPLOYMENT" >> $GITHUB_OUTPUT
+        echo "release-type=$FINAL_RELEASE_TYPE" >> $GITHUB_OUTPUT
+
+        echo "📤 Deployment context determined:"
+        echo "   Ref: $DEPLOYMENT_REF"
+        echo "   Tag: $DEPLOYMENT_TAG"
+        echo "   Manual: $IS_MANUAL_DEPLOYMENT"
+
+    - name: Create new tag for automatic deployment
+      id: create-new-tag
+      if: steps.determine-context.outputs.is-manual-deployment != 'true'
+      uses: ./.github/actions/create-git-tag
+      with:
+        event-name: ${{ inputs.event-name }}
+        release-type: ${{ inputs.release-type }}
+        deployment-type: ${{ inputs.deployment-type }}
+        pr-title: ${{ inputs.pr-title }}
+        pr-body: ${{ inputs.pr-body }}
+        pr-merged: ${{ inputs.pr-merged }}
+        manual-tag: ''
+        github-token: ${{ inputs.github-token }}
+
+    - name: Finalize automatic deployment context
+      id: finalize-auto
+      if: steps.determine-context.outputs.is-manual-deployment != 'true'
+      shell: bash
+      run: |
+        # Get results from tag creation
+        NEW_TAG="${{ steps.create-new-tag.outputs.new-tag }}"
+        SHOULD_CREATE_RELEASE="${{ steps.create-new-tag.outputs.should-create-release }}"
+        RELEASE_TYPE="${{ steps.create-new-tag.outputs.release-type }}"
+
+        echo "✅ Automatic deployment finalized:"
+        echo "   New tag: $NEW_TAG"
+        echo "   Should create release: $SHOULD_CREATE_RELEASE"
+        echo "   Release type: $RELEASE_TYPE"
+
+        # Export for parent outputs
+        echo "auto-tag=$NEW_TAG" >> $GITHUB_OUTPUT
+        echo "auto-should-create-release=$SHOULD_CREATE_RELEASE" >> $GITHUB_OUTPUT
+        echo "auto-release-type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
