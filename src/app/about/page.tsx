@@ -2,7 +2,6 @@ import Image from 'next/image';
 
 import { SectionComponent } from '@/atoms/Section.component';
 import AnimatedText from '@/organisms/AnimatedText.component';
-
 import Experience from '@/organisms/Experience.component';
 import Skills from '@/organisms/Skills.component';
 import Studies from '@/organisms/Studies.component';
@@ -31,15 +30,16 @@ export default function About() {
                 Profile
               </h2>
               <p className="my-4 font-light">
-                My name is Mina Demian and I&apos;m an experienced front-end
-                engineer, with experience also in full-stack development. With 7
-                years of experience in a modern web stack and 18 years overall
-                in tech, I am passionate about building meaningful, high-impact
-                products that scale.
+                My name is Mina Demian and I&apos;m an AI-empowered software
+                engineer. Skilled in backend development, full-stack architecture,
+                and technical leadership, I have a proven record of mentoring engineers
+                and designing robust platforms. Experienced across startups, government,
+                and enterprise projects, and passionate about building resilient systems
+                that solve complex business challenges..
               </p>
               <p className="my-4 font-light">
                 I believe that code and technology are tools and not the end. I
-                maintain agnosticism about technology, which helps me focus on
+                maintain an agnosticism about technology, which helps me focus on
                 using the right tool for the job. With the right tools, focus,
                 and strategy, technology helps us build the right product!
               </p>

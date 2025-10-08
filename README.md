@@ -2,6 +2,7 @@
 
 [![CI/CD Pipeline](https://github.com/minademian/minademian.com-v2/actions/workflows/feature-branch.yml/badge.svg)](https://github.com/minademian/minademian.com-v2/actions/workflows/feature-branch.yml)
 [![Production Deploy](https://github.com/minademian/minademian.com-v2/actions/workflows/release.yml/badge.svg)](https://github.com/minademian/minademian.com-v2/actions/workflows/release.yml)
+[![E2E Tests](https://github.com/minademian/minademian.com-v2/actions/workflows/e2e.yml/badge.svg)](https://github.com/minademian/minademian.com-v2/actions/workflows/e2e.yml)
 
 A modern, high-performance portfolio website built with Next.js 14 and TypeScript, featuring automated deployment pipelines and comprehensive CI/CD workflows.
 
@@ -11,15 +12,17 @@ A modern, high-performance portfolio website built with Next.js 14 and TypeScrip
 
 - **Framework**: Next.js 14 with App Router
 - **Language**: TypeScript with strict type checking
-- **Styling**: Tailwind CSS + Custom SCSS modules  
+- **Styling**: Tailwind CSS + Custom SCSS modules
 - **Package Manager**: pnpm for efficient dependency management
 - **Build**: Static site generation (SSG) with optimized output
+- **Testing**: End-to-end testing with Playwright (Chromium, Firefox, WebKit)
 - **Deployment**: Multi-environment with automated CI/CD
 
 ## 📋 Documentation
 
 - **[CHANGELOG.md](./CHANGELOG.md)** - Project history and version updates
 - **[DEPLOYING.md](./DEPLOYING.md)** - Comprehensive deployment guide and workflows
+- **[TESTING.md](./TESTING.md)** - End-to-end testing setup, usage, and CI/CD integration
 
 ## 🚀 Quick Start
 
@@ -47,12 +50,21 @@ Visit [http://localhost:3000](http://localhost:3000) to view the application.
 ### Available Scripts
 
 ```bash
+# Development
 pnpm dev          # Start development server
 pnpm build        # Build for production
 pnpm start        # Start production server
-pnpm lint         # Run ESLint
-pnpm lint:fix     # Fix linting issues
-pnpm type-check   # Run TypeScript compiler check
+
+# Code Quality
+pnpm lint              # Run ESLint
+pnpm lint:fix-trailing # Fix trailing spaces only
+pnpm type-check        # Run TypeScript compiler check
+
+# Testing
+pnpm test:e2e         # Run end-to-end tests
+pnpm test:e2e:ui      # Run tests in interactive UI mode
+pnpm test:e2e:debug   # Run tests in debug mode
+pnpm test:e2e:report  # Show test report
 ```
 
 ## 🔄 CI/CD Pipeline
@@ -68,9 +80,10 @@ This project features a sophisticated deployment system with automated testing, 
 
 ### Feature Branch Workflow
 
-- ✅ **Automated Testing**: Linting, type checking, build verification
+- ✅ **Automated Testing**: Linting, type checking, **E2E tests**, build verification
+- ✅ **Fail-Fast**: E2E tests run before build - failures prevent deployment
 - ✅ **Sandbox Deployment**: Branch-specific preview environments
-- ✅ **PR Comments**: Automatic preview links in pull requests
+- ✅ **PR Comments**: Automatic preview links and test results in pull requests
 - ✅ **Smart Optimization**: Early exit if build artifacts fail
 - ✅ **Error Handling**: Comprehensive failure notifications
 
@@ -85,7 +98,7 @@ This project features a sophisticated deployment system with automated testing, 
 
 ```
 feat/*      # New features
-fix/*       # Bug fixes  
+fix/*       # Bug fixes
 chore/*     # Maintenance tasks
 refactor/*  # Code refactoring
 docs/*      # Documentation updates
@@ -162,7 +175,7 @@ DEPLOY_BASE_PATH=/home/user/minademian.com
 ## 🔧 Technical Highlights
 
 - **Static Site Generation**: Optimized build output with trailing slashes
-- **Image Optimization**: Unoptimized for static hosting compatibility  
+- **Image Optimization**: Unoptimized for static hosting compatibility
 - **TypeScript**: Strict type checking with custom type definitions
 - **Code Quality**: ESLint + Prettier with automated formatting
 - **Performance**: Lighthouse-optimized with Core Web Vitals focus

@@ -9,12 +9,16 @@
         "source.organizeImports": "explicit",
         "source.addMissingImports": "explicit"
     },
-    
+
+    // Trailing spaces configuration
+    "files.trimTrailingWhitespace": true,
+    "files.trimFinalNewlines": true,
+
     // Import sorting configuration
     "importSorter.generalConfiguration.sortOnBeforeSave": true,
     "importSorter.importStringConfiguration.maximumNumberOfImportExpressionsPerLine.count": 120,
     "importSorter.importStringConfiguration.tabSize": 2,
-    
+
     // Auto-import and suggestion settings
     "typescript.suggest.autoImports": true,
     "javascript.suggest.autoImports": true,
@@ -24,7 +28,7 @@
     "javascript.suggest.completeFunctionCalls": true,
     "typescript.updateImportsOnFileMove.enabled": "always",
     "javascript.updateImportsOnFileMove.enabled": "always",
-    
+
     // Quick fix and code actions
     "editor.lightBulb.enabled": "on",
     "editor.quickSuggestions": {
@@ -33,14 +37,14 @@
         "strings": "off"
     },
     "editor.quickSuggestionsDelay": 10,
-    
+
     // Auto Import extension settings
     "autoimport.filesToScan": "**/*.{ts,tsx,js,jsx}",
     "autoimport.showNotifications": true,
     "autoimport.doubleQuotes": false,
     "autoimport.spaceBetweenBraces": true,
     "eslint.format.enable": false,
-    
+
     // Override global Prettier settings for this workspace
     "[typescript]": {
         "editor.defaultFormatter": null,
@@ -79,5 +83,21 @@
             ".ts",
             ".tsx"
         ]
-    }
+    },
+
+    // Playwright configuration
+    "playwright.showTrace": true,
+    "playwright.reuseBrowser": true,
+    "playwright.testTimeout": 30000,
+
+    // ESLint specific configuration for trailing spaces only
+    "eslint.codeActionsOnSave.rules": [
+        "no-trailing-spaces"
+    ],
+    "eslint.rules.customizations": [
+        {
+            "rule": "no-trailing-spaces",
+            "severity": "error"
+        }
+    ]
 }

@@ -8,6 +8,7 @@
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
     "react/display-name": "warn",
+    "react/jsx-max-props-per-line": "off",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
     // Import/Export rules
@@ -93,10 +94,15 @@
     "max-len": [
       "warn",
       {
-        "code": 120
+        "code": 120,
+        "ignoreUrls": true,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true,
+        "ignoreRegExpLiterals": true,
+        "ignorePattern": "^\\s*(className|class|style|d)="
       }
     ],
-    "no-trailing-spaces": "warn",
+    "no-trailing-spaces": "error",
     "no-multiple-empty-lines": [
       "warn",
       {
