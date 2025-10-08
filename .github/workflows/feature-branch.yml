@@ -17,23 +17,9 @@ permissions:
   issues: write  # Needed to comment on issues
 
 jobs:
-  install:
-    name: Install Dependencies
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js and pnpm
-        uses: ./.github/actions/setup-node-pnpm
-
-      - name: Verify dependencies
-        run: pnpm list --depth=0
-
   lint:
     name: Code Linting
     runs-on: ubuntu-latest
-    needs: install
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -47,7 +33,6 @@ jobs:
   typecheck:
     name: Type Checking
     runs-on: ubuntu-latest
-    needs: install
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

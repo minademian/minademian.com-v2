@@ -87,8 +87,8 @@ jobs:
         with:
           ref: ${{ steps.set-ref.outputs.ref }}
 
-  validate:
-    name: Pre-build Validation
+  lint:
+    name: Code Linting
     runs-on: ubuntu-latest
     if: always()
     needs: [checkout-tag]
@@ -104,13 +104,27 @@ jobs:
       - name: Run linting
         run: pnpm run lint
 
+  typecheck:
+    name: Type Checking
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [checkout-tag]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
       - name: Run type checking
         uses: ./.github/actions/typecheck
 
   e2e-tests:
     name: E2E Tests
     uses: ./.github/workflows/e2e.yml
-    needs: validate
+    needs: [lint, typecheck]
     if: github.event.inputs.deployment_type != 'manual_tag_deploy'
     with:
       environment: 'production'
@@ -119,7 +133,7 @@ jobs:
   build:
     name: Build Project
     runs-on: ubuntu-latest
-    needs: [validate]  # Only depend on validate, not e2e-tests (non-blocking)
+    needs: [lint, typecheck]  # Depend on both lint and typecheck
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
