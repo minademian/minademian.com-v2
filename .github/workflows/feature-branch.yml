@@ -60,7 +60,7 @@ jobs:
         id: check
         shell: bash
         run: |
-          SKIP_E2E="false"
+          SKIP_E2E=false
           COMMIT_TYPE="feature"
 
           echo "🔍 Checking recent commit messages for CI/Chore/Docs patterns..."
@@ -68,7 +68,7 @@ jobs:
           # Check the last 3 commits for ci, chore, or docs patterns (conventional commits)
           # Matches: ci:, chore:, docs:, type(ci):, type(chore):, type(docs):, ci(scope):, etc.
           if git log --oneline -n 3 | grep -qiE "(^[a-f0-9]+ ).*(ci|chore|docs)(\(.*\)?)?:"; then
-            SKIP_E2E="true"
+            SKIP_E2E=true
             COMMIT_TYPE="ci-chore-docs"
             echo "🔧 CI/Chore/Docs commit detected - skipping E2E tests"
             echo ""
