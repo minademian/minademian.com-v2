@@ -137,9 +137,9 @@ jobs:
         shell: bash
         run: |
           DEBUG_ENABLED="false"
-          
+
           echo "🔍 Checking recent commit messages for debug flag..."
-          
+
           # Check the last 5 commits for the debug flag
           if git log --oneline -n 5 --grep="\[DEBUG_DEPLOYMENT_INFORMATION\]" | grep -q "DEBUG_DEPLOYMENT_INFORMATION"; then
             DEBUG_ENABLED="true"
@@ -149,7 +149,7 @@ jobs:
           else
             echo "ℹ️  No debug flag found in recent commit messages"
           fi
-          
+
           echo "debug-enabled=$DEBUG_ENABLED" >> $GITHUB_OUTPUT
           echo "Final debug setting: $DEBUG_ENABLED"
 

@@ -40,7 +40,7 @@ inputs:
     description: 'Whether build artifacts are available (true/false)'
     required: false
     default: 'true'
-  
+
   # Build artifact
   build-artifact-name:
     description: 'Name of the build artifact to deploy'
