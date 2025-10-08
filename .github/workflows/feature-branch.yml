@@ -119,51 +119,70 @@ jobs:
             echo "artifacts-uploaded=false" >> $GITHUB_OUTPUT
           fi
 
-  configure-sandbox:
-    name: Configure Sandbox Deployment
+  check-debug-flag:
+    name: Check Debug Flag
     runs-on: ubuntu-latest
-    needs: build
-    if: always() && needs.build.result == 'success' && needs.build.outputs.artifacts-uploaded == 'true'
+    needs: [build]
+    if: always() && needs.build.result == 'success'
     outputs:
-      deployment-type: ${{ steps.config.outputs.deployment-type }}
-      target-path: ${{ steps.config.outputs.target-path }}
-      deployment-url: ${{ steps.config.outputs.deployment-url }}
-      branch-name: ${{ steps.config.outputs.branch-name }}
+      debug-enabled: ${{ steps.check.outputs.debug-enabled }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Configure sandbox deployment
-        id: config
-        uses: ./.github/actions/configure-deployment
         with:
-          event-name: ${{ github.event_name }}
-          ref: ${{ github.ref }}
-          ref-name: ${{ github.ref_name }}
-          branch-name: ${{ github.head_ref || github.ref_name || github.event.inputs.branch_name }}
-          deployment-context: 'sandbox'
-          base-path: ${{ secrets.DEPLOY_BASE_PATH }}
+          fetch-depth: 10  # Get recent commits to check
 
-  deploy-sandbox:
+      - name: Check for debug flag in commits
+        id: check
+        shell: bash
+        run: |
+          DEBUG_ENABLED="false"
+          
+          echo "🔍 Checking recent commit messages for debug flag..."
+          
+          # Check the last 5 commits for the debug flag
+          if git log --oneline -n 5 --grep="\[DEBUG_DEPLOYMENT_INFORMATION\]" | grep -q "DEBUG_DEPLOYMENT_INFORMATION"; then
+            DEBUG_ENABLED="true"
+            echo "🐛 Debug enabled via commit message containing [DEBUG_DEPLOYMENT_INFORMATION]"
+            echo "Found in commit:"
+            git log --oneline -n 5 --grep="\[DEBUG_DEPLOYMENT_INFORMATION\]" | head -1
+          else
+            echo "ℹ️  No debug flag found in recent commit messages"
+          fi
+          
+          echo "debug-enabled=$DEBUG_ENABLED" >> $GITHUB_OUTPUT
+          echo "Final debug setting: $DEBUG_ENABLED"
+
+  deploy:
     name: Deploy to Sandbox
     runs-on: ubuntu-latest
-    needs: [build, configure-sandbox]
-    if: always() && needs.build.result == 'success' && needs.configure-sandbox.result == 'success' && needs.build.outputs.artifacts-uploaded == 'true'
+    needs: [build, check-debug-flag]
+    if: always() && needs.build.result == 'success' && (needs.check-debug-flag.result == 'success' || needs.check-debug-flag.result == 'skipped')
+    outputs:
+      deployment-url: ${{ steps.deploy.outputs.deployment-url }}
+      deployment-skipped: ${{ steps.deploy.outputs.deployment-skipped }}
+      skip-reason: ${{ steps.deploy.outputs.skip-reason }}
+      branch-name: ${{ steps.deploy.outputs.branch-name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Deploy to sandbox
-        uses: ./.github/actions/deploy-website
+        id: deploy
+        uses: ./.github/actions/deploy-to-remote-server
         with:
-          deployment-type: ${{ needs.configure-sandbox.outputs.deployment-type }}
-          target-path: ${{ needs.configure-sandbox.outputs.target-path }}
-          branch-name: ${{ needs.configure-sandbox.outputs.branch-name }}
+          deployment-mode: sandbox
+          event-name: ${{ github.event_name }}
+          ref: ${{ github.ref }}
+          ref-name: ${{ github.ref_name }}
+          branch-name: ${{ github.head_ref || github.ref_name || github.event.inputs.branch_name }}
           build-artifact-name: 'sandbox-build-files'
-          sftp-host: ${{ secrets.SFTP_HOST }}
-          sftp-username: ${{ secrets.SFTP_USERNAME }}
-          sftp-password: ${{ secrets.SFTP_PASSWORD }}
+          build-artifacts-available: ${{ needs.build.outputs.artifacts-uploaded }}
+          ssh-host: ${{ secrets.SFTP_HOST }}
+          ssh-username: ${{ secrets.SFTP_USERNAME }}
+          ssh-password: ${{ secrets.SFTP_PASSWORD }}
           base-path: ${{ secrets.DEPLOY_BASE_PATH }}
+          debug-enabled: ${{ needs.check-debug-flag.outputs.debug-enabled }}
 
       - name: Comment on PR with preview link
         if: github.event_name == 'pull_request'
@@ -184,51 +203,6 @@ jobs:
             This preview will be updated automatically when you push new commits to this PR.
 
             > **Note:** The sandbox deployment is for preview purposes only and may be cleaned up periodically.`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
-
-  deployment-skipped:
-    name: Deployment Skipped
-    runs-on: ubuntu-latest
-    needs: build
-    if: always() && needs.build.result == 'success' && needs.build.outputs.artifacts-uploaded != 'true'
-    steps:
-      - name: Skip deployment notification
-        run: |
-          echo "🚫 Sandbox deployment skipped"
-          echo "Reason: No build artifacts were created"
-          echo "Check the build step to ensure the out/ directory is generated"
-          echo ""
-          echo "💡 Common causes:"
-          echo "   - Next.js config missing 'output: \"export\"'"
-          echo "   - Build command failed silently"
-          echo "   - Build outputs to a different directory"
-
-      - name: Comment on PR about skipped deployment
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const comment = `## ⚠️ Sandbox Deployment Skipped
-
-            The sandbox deployment was skipped because no build artifacts were generated.
-
-            **Possible causes:**
-            - Next.js configuration missing \`output: "export"\`
-            - Build command failed during execution
-            - Build outputs to a different directory than \`out/\`
-
-            **To fix:**
-            1. Check the build logs in the "Build Project" job
-            2. Ensure your \`next.config.js\` includes \`output: "export"\`
-            3. Verify the build command completes successfully
-
-            Once fixed, push another commit to trigger a new deployment.`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,

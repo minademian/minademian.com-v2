@@ -32,6 +32,42 @@ inputs:
   base-path:
     description: 'Base path on server (e.g., /home/username/domain.com)'
     required: true
+  
+  # Optional release-specific debugging info
+  deployment-type-input:
+    description: 'Deployment type from workflow input (for debug output)'
+    required: false
+    default: ''
+  tag-to-deploy:
+    description: 'Tag to deploy from workflow input (for debug output)'
+    required: false
+    default: ''
+  deploy-target:
+    description: 'Deploy target from workflow input (for debug output)'
+    required: false
+    default: ''
+  create-github-release:
+    description: 'Create GitHub release flag from workflow input (for debug output)'
+    required: false
+    default: ''
+  create-tag-result:
+    description: 'Result of create-tag job (for debug output)'
+    required: false
+    default: ''
+  is-manual-release:
+    description: 'Is manual release flag from create-tag job (for debug output)'
+    required: false
+    default: ''
+  should-create-release:
+    description: 'Should create release flag from create-tag job (for debug output)'
+    required: false
+    default: ''
+
+  # Debug control
+  debug-enabled:
+    description: 'Whether to show detailed debug information (true/false)'
+    required: false
+    default: 'false'
 
 outputs:
   deployment-type:
@@ -56,6 +92,38 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Debug deployment information
+      if: inputs.debug-enabled == 'true'
+      shell: bash
+      run: |
+        echo "🔍 Debugging deployment information:"
+        echo "   📋 Context: ${{ inputs.deployment-context }}"
+        echo "   🎯 Event: ${{ inputs.event-name }}"
+        echo "   🏷️  Ref: ${{ inputs.ref }}"
+        echo "   🔖 Ref name: ${{ inputs.ref-name }}"
+        echo "   🌿 Branch name: ${{ inputs.branch-name }}"
+        echo "   🏷️  Git tag input: ${{ inputs.git-tag }}"
+        echo "   🎛️  Manual environment: ${{ inputs.manual-environment }}"
+        echo "   🎯 Manual target: ${{ inputs.manual-target }}"
+        echo "   📁 Base path: ${{ inputs.base-path }}"
+        
+        # Release-specific debug info (if provided)
+        if [ -n "${{ inputs.deployment-type-input }}" ]; then
+          echo ""
+          echo "🚀 Release workflow debug info:"
+          echo "   🔧 Deployment type: ${{ inputs.deployment-type-input }}"
+          echo "   🏷️  Tag to deploy: ${{ inputs.tag-to-deploy }}"
+          echo "   🎯 Deploy target: ${{ inputs.deploy-target }}"
+          echo "   📦 Create GitHub release: ${{ inputs.create-github-release }}"
+          echo "   ✅ Create-tag job result: ${{ inputs.create-tag-result }}"
+          echo "   📋 Is manual release: ${{ inputs.is-manual-release }}"
+          echo "   🔄 Should create release: ${{ inputs.should-create-release }}"
+          if [ -n "${{ inputs.git-tag }}" ]; then
+            echo "   🏷️  New tag from create-tag: ${{ inputs.git-tag }}"
+          fi
+        fi
+        echo ""
+
     - name: Configure deployment settings
       id: config
       shell: bash
