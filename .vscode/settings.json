@@ -79,5 +79,10 @@
             ".ts",
             ".tsx"
         ]
-    }
+    },
+    
+    // Playwright configuration
+    "playwright.showTrace": true,
+    "playwright.reuseBrowser": true,
+    "playwright.testTimeout": 30000
 }
