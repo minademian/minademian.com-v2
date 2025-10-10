@@ -139,7 +139,6 @@ runs:
         ## Deployment Info
 
         🌐 **Production URL**: ${{ inputs.deployment-url }}
-        🔗 **Release URL**: ${{ inputs.deployment-url }}"
           fi
 
           RELEASE_NOTES="$RELEASE_NOTES
