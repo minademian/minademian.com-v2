@@ -77,34 +77,92 @@ runs:
         elif [ "${{ inputs.event-name }}" = "pull_request" ] && [ "${{ inputs.pr-merged }}" = "true" ]; then
           PR_TITLE="${{ inputs.pr-title }}"
           PR_BODY="${{ inputs.pr-body }}"
-          PR_TEXT="$PR_TITLE $PR_BODY"
 
           echo "🔍 Checking PR for release type..."
           echo "PR Title: $PR_TITLE"
 
-          if echo "$PR_TEXT" | grep -qE "\[(major|minor|patch)\]"; then
-            RELEASE_TYPE=$(echo "$PR_TEXT" | grep -oE "\[(major|minor|patch)\]" | head -1 | tr -d '[]')
-            SHOULD_CREATE="true"
-            echo "✅ Release type found in PR text: $RELEASE_TYPE"
-          elif echo "$PR_TEXT" | grep -qE "(#major|#minor|#patch)"; then
-            RELEASE_TYPE=$(echo "$PR_TEXT" | grep -oE "#(major|minor|patch)" | head -1 | tr -d '#')
-            SHOULD_CREATE="true"
-            echo "✅ Release type found in PR text: $RELEASE_TYPE"
-          elif echo "$PR_TEXT" | grep -qiE "(major release|minor release|patch release)"; then
-            if echo "$PR_TEXT" | grep -qiE "major release"; then
-              RELEASE_TYPE="major"
-            elif echo "$PR_TEXT" | grep -qiE "minor release"; then
-              RELEASE_TYPE="minor"
-            elif echo "$PR_TEXT" | grep -qiE "patch release"; then
-              RELEASE_TYPE="patch"
+          FOUND_IN=""
+          FOUND_COUNT=0
+
+          # Check for [bracket] notation in title
+          if echo "$PR_TITLE" | grep -qE "\[(major|minor|patch)\]"; then
+            RELEASE_TYPE=$(echo "$PR_TITLE" | grep -oE "\[(major|minor|patch)\]" | head -1 | tr -d '[]')
+            FOUND_IN="title (bracket notation)"
+            FOUND_COUNT=$((FOUND_COUNT + 1))
+          fi
+
+          # Check for [bracket] notation in body
+          if echo "$PR_BODY" | grep -qE "\[(major|minor|patch)\]"; then
+            if [ -z "$FOUND_IN" ]; then
+              RELEASE_TYPE=$(echo "$PR_BODY" | grep -oE "\[(major|minor|patch)\]" | head -1 | tr -d '[]')
+              FOUND_IN="body (bracket notation)"
             fi
+            FOUND_COUNT=$((FOUND_COUNT + 1))
+          fi
+
+          # Check for #hashtag notation in title
+          if echo "$PR_TITLE" | grep -qE "(#major|#minor|#patch)"; then
+            if [ -z "$FOUND_IN" ]; then
+              RELEASE_TYPE=$(echo "$PR_TITLE" | grep -oE "#(major|minor|patch)" | head -1 | tr -d '#')
+              FOUND_IN="title (hashtag notation)"
+            fi
+            FOUND_COUNT=$((FOUND_COUNT + 1))
+          fi
+
+          # Check for #hashtag notation in body
+          if echo "$PR_BODY" | grep -qE "(#major|#minor|#patch)"; then
+            if [ -z "$FOUND_IN" ]; then
+              RELEASE_TYPE=$(echo "$PR_BODY" | grep -oE "#(major|minor|patch)" | head -1 | tr -d '#')
+              FOUND_IN="body (hashtag notation)"
+            fi
+            FOUND_COUNT=$((FOUND_COUNT + 1))
+          fi
+
+          # Check for "release" text pattern in title (case-insensitive)
+          if echo "$PR_TITLE" | grep -qiE "(major release|minor release|patch release)"; then
+            if [ -z "$FOUND_IN" ]; then
+              if echo "$PR_TITLE" | grep -qiE "major release"; then
+                RELEASE_TYPE="major"
+              elif echo "$PR_TITLE" | grep -qiE "minor release"; then
+                RELEASE_TYPE="minor"
+              elif echo "$PR_TITLE" | grep -qiE "patch release"; then
+                RELEASE_TYPE="patch"
+              fi
+              FOUND_IN="title (text pattern)"
+            fi
+            FOUND_COUNT=$((FOUND_COUNT + 1))
+          fi
+
+          # Check for "release" text pattern in body (case-insensitive)
+          if echo "$PR_BODY" | grep -qiE "(major release|minor release|patch release)"; then
+            if [ -z "$FOUND_IN" ]; then
+              if echo "$PR_BODY" | grep -qiE "major release"; then
+                RELEASE_TYPE="major"
+              elif echo "$PR_BODY" | grep -qiE "minor release"; then
+                RELEASE_TYPE="minor"
+              elif echo "$PR_BODY" | grep -qiE "patch release"; then
+                RELEASE_TYPE="patch"
+              fi
+              FOUND_IN="body (text pattern)"
+            fi
+            FOUND_COUNT=$((FOUND_COUNT + 1))
+          fi
+
+          # Warn if multiple markers found
+          if [ "$FOUND_COUNT" -gt 1 ]; then
+            echo "⚠️ Warning: Multiple release type markers found ($FOUND_COUNT occurrences)"
+            echo "   Using first match from: $FOUND_IN"
+          fi
+
+          # If release type was found, create release
+          if [ -n "$FOUND_IN" ]; then
             SHOULD_CREATE="true"
-            echo "✅ Release type found in PR text: $RELEASE_TYPE"
+            echo "✅ Release type '$RELEASE_TYPE' found in PR $FOUND_IN"
           else
-            # Default to major release for merged PRs without explicit version type
-            RELEASE_TYPE="major"
+            # Default to patch release for merged PRs without explicit version type
+            RELEASE_TYPE="patch"
             SHOULD_CREATE="true"
-            echo "⚠️ No release type specified - defaulting to major release"
+            echo "⚠️ No release type specified in PR title or body - defaulting to patch release"
           fi
         fi
 
