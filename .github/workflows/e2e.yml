@@ -22,8 +22,8 @@ on:
       skip-e2e:
         description: 'Whether to skip E2E tests (from commit type check)'
         required: true
-        type: string
-        default: 'false'
+        type: boolean
+        default: false
     outputs:
       test-results:
         description: 'E2E test results (passed/failed)'
@@ -42,7 +42,8 @@ jobs:
 
     steps:
       - name: Notify E2E skip
-        if: inputs.skip-e2e == 'true'
+        if: inputs.skip-e2e == true
+        id: skip-notification
         run: |
           echo "🔧 E2E Tests Skipped for CI/Chore Commit"
           echo ""
@@ -52,22 +53,21 @@ jobs:
           echo "   - Start with 'docs' (documentation changes)"
           echo ""
           echo "This speeds up CI/CD pipeline for GitHub Actions changes that don't affect application functionality."
-          echo "results=skipped" >> $GITHUB_OUTPUT
 
       - name: Checkout repository
-        if: inputs.skip-e2e != 'true'
+        if: inputs.skip-e2e != true
         uses: actions/checkout@v4
 
       - name: Setup Node.js and pnpm
-        if: inputs.skip-e2e != 'true'
+        if: inputs.skip-e2e != true
         uses: ./.github/actions/setup-node-pnpm
 
       - name: Install Playwright Browsers
-        if: inputs.skip-e2e != 'true'
+        if: inputs.skip-e2e != true
         run: pnpm exec playwright install --with-deps chromium firefox webkit
 
       - name: Run E2E tests
-        if: inputs.skip-e2e != 'true'
+        if: inputs.skip-e2e != true
         id: run-tests
         run: |
           pnpm exec playwright test --reporter=github
@@ -77,7 +77,7 @@ jobs:
         id: test-results
         if: always()
         run: |
-          if [ "${{ inputs.skip-e2e }}" == "'true'" ]; then
+          if [ "${{ inputs.skip-e2e }}" == "true" ]; then
             echo "results=skipped" >> $GITHUB_OUTPUT
           elif [ "${{ steps.run-tests.outcome }}" == "success" ]; then
             echo "results=passed" >> $GITHUB_OUTPUT
@@ -87,7 +87,7 @@ jobs:
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always() && inputs.skip-e2e != 'true'
+        if: always() && inputs.skip-e2e != true
         with:
           name: playwright-report-${{ github.run_id }}
           path: |
@@ -98,7 +98,7 @@ jobs:
 
       - name: Upload test videos
         uses: actions/upload-artifact@v4
-        if: failure() && inputs.skip-e2e != 'true'
+        if: failure() && inputs.skip-e2e != true
         with:
           name: playwright-videos-${{ github.run_id }}
           path: test-results/*/video.webm

@@ -68,13 +68,13 @@ jobs:
 
           # Check the last 3 commits for ci, chore, or docs patterns (conventional commits)
           # Matches: ci:, chore:, docs:, <any-type>(ci):
-          if git log --oneline -n 3 | grep -qiE "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\)):"; then
+          if git log --oneline -n 3 | grep -qE "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):)"; then
             SKIP_E2E="true"
             COMMIT_TYPE="ci-chore-docs"
             echo "🔧 CI/Chore/Docs commit detected - skipping E2E tests"
             echo ""
             echo "Matching commits found:"
-            git log --oneline -n 3 | grep -iE "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\)):" || true
+            git log --oneline -n 3 | grep -E "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):)" || true
             echo ""
             echo "All recent commits:"
             git log --oneline -n 3
@@ -97,7 +97,7 @@ jobs:
     with:
       environment: 'development'
       fail_on_error: true  # Blocking: fail the pipeline if e2e tests fail
-      skip-e2e: ${{ needs.check-commit-type.outputs.skip-e2e }}
+      skip-e2e: ${{ needs.check-commit-type.outputs.skip-e2e == 'true' }}
 
   build:
     name: Build Project
