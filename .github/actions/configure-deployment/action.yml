@@ -179,7 +179,7 @@ runs:
               # Fallback to production (via latest symlink)
               DEPLOYMENT_TYPE="production"
               TARGET_PATH="latest/"
-              DEPLOYMENT_URL="https://minademian.com/latest/"
+              DEPLOYMENT_URL="https://minademian.com/"
               ENVIRONMENT_NAME="production"
               echo "🏠 Fallback to production deployment"
             fi
@@ -222,7 +222,7 @@ runs:
             fi
 
             DEPLOYMENT_TYPE="production"
-            DEPLOYMENT_URL="https://minademian.com/latest/"
+            DEPLOYMENT_URL="https://minademian.com"
             ;;
 
           *)

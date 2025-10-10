@@ -1,6 +1,10 @@
-import { After, Before } from '@cucumber/cucumber';
+import { After, Before, setDefaultTimeout } from '@cucumber/cucumber';
 
 import { CustomWorld } from './world';
+
+const DEFAULT_TIMEOUT = 15000;
+
+setDefaultTimeout(DEFAULT_TIMEOUT);
 
 // Scenario setup - run before each scenario
 Before(async function beforeScenario(this: CustomWorld) {

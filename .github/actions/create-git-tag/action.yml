@@ -79,16 +79,22 @@ runs:
           PR_BODY="${{ inputs.pr-body }}"
 
           echo "🔍 Checking PR for release type..."
-          echo "PR Title: $PR_TITLE"
+          echo "PR Title: '$PR_TITLE'"
+          echo "PR Body: '$PR_BODY'"
+          echo ""
 
           FOUND_IN=""
           FOUND_COUNT=0
 
           # Check for [bracket] notation in title
+          echo "Checking [bracket] notation in title..."
           if echo "$PR_TITLE" | grep -qE "\[(major|minor|patch)\]"; then
             RELEASE_TYPE=$(echo "$PR_TITLE" | grep -oE "\[(major|minor|patch)\]" | head -1 | tr -d '[]')
             FOUND_IN="title (bracket notation)"
             FOUND_COUNT=$((FOUND_COUNT + 1))
+            echo "  ✅ Found: $RELEASE_TYPE"
+          else
+            echo "  ❌ Not found"
           fi
 
           # Check for [bracket] notation in body
@@ -157,14 +163,24 @@ runs:
           # If release type was found, create release
           if [ -n "$FOUND_IN" ]; then
             SHOULD_CREATE="true"
+            echo ""
             echo "✅ Release type '$RELEASE_TYPE' found in PR $FOUND_IN"
+            echo "   Will create: $RELEASE_TYPE release"
           else
             # Default to patch release for merged PRs without explicit version type
             RELEASE_TYPE="patch"
             SHOULD_CREATE="true"
+            echo ""
             echo "⚠️ No release type specified in PR title or body - defaulting to patch release"
+            echo "   Will create: patch release"
           fi
         fi
+
+        echo ""
+        echo "📊 Final Decision:"
+        echo "   Should Create: $SHOULD_CREATE"
+        echo "   Release Type: $RELEASE_TYPE"
+        echo "   Is Manual: $IS_MANUAL"
 
         echo "should-create-release=$SHOULD_CREATE" >> $GITHUB_OUTPUT
         echo "release-type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
@@ -187,8 +203,13 @@ runs:
         LATEST_TAG="${{ steps.latest-tag.outputs.latest-tag }}"
         RELEASE_TYPE="${{ steps.check.outputs.release-type }}"
 
+        echo "🧮 Calculating next version..."
+        echo "   Latest tag: $LATEST_TAG"
+        echo "   Release type: $RELEASE_TYPE"
+
         # Remove 'v' prefix for calculation
         VERSION=${LATEST_TAG#v}
+        echo "   Version without 'v': $VERSION"
 
         # Split version into parts
         IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
@@ -196,24 +217,37 @@ runs:
         MINOR=${VERSION_PARTS[1]:-0}
         PATCH=${VERSION_PARTS[2]:-0}
 
+        echo "   Current: MAJOR=$MAJOR MINOR=$MINOR PATCH=$PATCH"
+
         # Calculate new version based on release type
         case $RELEASE_TYPE in
           major)
+            echo "   Bumping MAJOR version"
             MAJOR=$((MAJOR + 1))
             MINOR=0
             PATCH=0
             ;;
           minor)
+            echo "   Bumping MINOR version"
             MINOR=$((MINOR + 1))
             PATCH=0
             ;;
           patch)
+            echo "   Bumping PATCH version"
+            PATCH=$((PATCH + 1))
+            ;;
+          *)
+            echo "   ⚠️  Unknown release type: $RELEASE_TYPE"
+            echo "   Defaulting to PATCH bump"
             PATCH=$((PATCH + 1))
             ;;
         esac
 
+        echo "   New: MAJOR=$MAJOR MINOR=$MINOR PATCH=$PATCH"
+
         NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
         echo "next-version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo ""
         echo "🏷️ Next version: $NEW_VERSION"
 
     - name: Create and push tag
