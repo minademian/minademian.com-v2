@@ -123,11 +123,14 @@ runs:
 
           if [ -n "$PREVIOUS_TAG" ]; then
             echo "📊 Generating changelog from $PREVIOUS_TAG to $TAG"
-            CHANGELOG=$(git log --pretty=format:"- %s" "$PREVIOUS_TAG".."$TAG" 2>/dev/null || echo "- $COMMIT_MESSAGE")
+            # Write to temp file to avoid command substitution issues with special characters
+            git log --pretty=format:"- %s" "$PREVIOUS_TAG".."$TAG" > /tmp/changelog.txt 2>/dev/null || echo "- $COMMIT_MESSAGE" > /tmp/changelog.txt
+            CHANGELOG="$(cat /tmp/changelog.txt)"
           else
             CHANGELOG="- $COMMIT_MESSAGE"
           fi
 
+          # Build release notes using printf to properly handle special characters
           RELEASE_NOTES="## What's Changed
 
         $CHANGELOG"
