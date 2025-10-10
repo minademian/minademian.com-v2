@@ -84,24 +84,24 @@ jobs:
           echo "🔍 ANALYZING: Commit Message for E2E Trigger"
           echo "════════════════════════════════════════════════════════════════"
           echo ""
-          
+
           COMMIT_MSG="${{ github.event.inputs.mock_commit_message }}"
           MANUAL_SKIP="${{ github.event.inputs.skip_e2e }}"
-          
+
           echo "📝 Mock Commit Message:"
           echo "   \"$COMMIT_MSG\""
           echo ""
           echo "⚙️ Manual Skip E2E Flag: $MANUAL_SKIP"
           echo ""
-          
+
           SHOULD_SKIP="false"
           COMMIT_TYPE="unknown"
           MATCHED_PATTERN="none"
-          
+
           # Check if commit matches ci-only patterns (should skip E2E)
           if echo "$COMMIT_MSG" | grep -qE '^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\)):'; then
             SHOULD_SKIP="true"
-            
+
             if echo "$COMMIT_MSG" | grep -qE '^[a-f0-9]+ ci:'; then
               COMMIT_TYPE="ci"
               MATCHED_PATTERN="ci:"
@@ -115,7 +115,7 @@ jobs:
               COMMIT_TYPE=$(echo "$COMMIT_MSG" | grep -oE '^[a-f0-9]+ [a-z]+\(ci\):' | grep -oE '[a-z]+\(ci\)' | sed 's/(ci)//')
               MATCHED_PATTERN="$COMMIT_TYPE(ci):"
             fi
-            
+
             echo "✅ Commit matches CI-only pattern: $MATCHED_PATTERN"
             echo "   → E2E tests would be SKIPPED (commit-based)"
           else
@@ -123,15 +123,15 @@ jobs:
             echo "📋 Commit type: $COMMIT_TYPE"
             echo "   → E2E tests would be TRIGGERED (commit requires testing)"
           fi
-          
+
           echo ""
-          
+
           # Override with manual skip if provided
           if [ "$MANUAL_SKIP" = "true" ]; then
             echo "⚠️ Manual skip flag is TRUE - E2E will be skipped regardless of commit"
             SHOULD_SKIP="true"
           fi
-          
+
           echo ""
           echo "🎯 Final Decision:"
           if [ "$SHOULD_SKIP" = "true" ]; then
@@ -139,10 +139,10 @@ jobs:
           else
             echo "   ✅ E2E tests would be TRIGGERED"
           fi
-          
+
           echo ""
           echo "════════════════════════════════════════════════════════════════"
-          
+
           echo "should-skip-e2e=$SHOULD_SKIP" >> $GITHUB_OUTPUT
           echo "commit-type=$COMMIT_TYPE" >> $GITHUB_OUTPUT
           echo "matched-pattern=$MATCHED_PATTERN" >> $GITHUB_OUTPUT
@@ -167,20 +167,20 @@ jobs:
           echo "🏷️ SIMULATING: Git Tag Creation"
           echo "════════════════════════════════════════════════════════════════"
           echo ""
-          
+
           # Get current latest tag
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
           echo "📌 Current Latest Tag: $LATEST_TAG"
-          
+
           # Calculate next version based on release type
           VERSION=${LATEST_TAG#v}
           IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
           MAJOR=${VERSION_PARTS[0]:-0}
           MINOR=${VERSION_PARTS[1]:-0}
           PATCH=${VERSION_PARTS[2]:-0}
-          
+
           RELEASE_TYPE="${{ github.event.inputs.release_type }}"
-          
+
           case $RELEASE_TYPE in
             major)
               MAJOR=$((MAJOR + 1))
@@ -195,9 +195,9 @@ jobs:
               PATCH=$((PATCH + 1))
               ;;
           esac
-          
+
           NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
-          
+
           echo ""
           echo "🔢 Version Calculation:"
           echo "  • Release Type: $RELEASE_TYPE"
@@ -208,7 +208,7 @@ jobs:
           echo ""
           echo "🚫 DRY RUN: Tag NOT actually created"
           echo "════════════════════════════════════════════════════════════════"
-          
+
           echo "simulated-tag=$NEW_TAG" >> $GITHUB_OUTPUT
           echo "simulated-release-type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
 
@@ -322,12 +322,12 @@ jobs:
           echo "🏗️ SIMULATING: Production Build"
           echo "════════════════════════════════════════════════════════════════"
           echo ""
-          
+
           CACHE_SCENARIO="${{ github.event.inputs.cache_scenario }}"
-          
+
           echo "💾 Cache Scenario: $CACHE_SCENARIO"
           echo ""
-          
+
           if [ "$CACHE_SCENARIO" = "cache-hit" ]; then
             echo "✅ CACHE HIT - Dependencies cached"
             echo ""
@@ -352,7 +352,7 @@ jobs:
             echo ""
             echo "⏱️ Build time: ~5-8 minutes (without cache)"
           fi
-          
+
           echo ""
           echo "✅ Production build would complete here"
           echo "🚫 DRY RUN: Actual build NOT executed"
@@ -369,9 +369,9 @@ jobs:
           echo "🚀 SIMULATING: Deployment to Vercel"
           echo "════════════════════════════════════════════════════════════════"
           echo ""
-          
+
           DEPLOY_ENV="${{ github.event.inputs.deploy_environment }}"
-          
+
           echo "📋 Configuration:"
           echo "  • Tag: ${{ needs.simulate-git-tag.outputs.simulated-tag }}"
           echo "  • Release Type: ${{ needs.simulate-git-tag.outputs.simulated-release-type }}"
@@ -379,7 +379,7 @@ jobs:
           echo "  • Deploy Environment: $DEPLOY_ENV"
           echo "  • Cache Scenario: ${{ github.event.inputs.cache_scenario }}"
           echo ""
-          
+
           if [ "$DEPLOY_ENV" = "production" ]; then
             echo "🌐 PRODUCTION DEPLOYMENT"
             echo ""
@@ -413,7 +413,7 @@ jobs:
             echo "  • https://staging-minademian.vercel.app (simulated)"
             echo "  • Staging/preview environment"
           fi
-          
+
           echo ""
           echo "🚫 DRY RUN: Actual deployment NOT executed"
           echo "════════════════════════════════════════════════════════════════"
@@ -434,24 +434,24 @@ jobs:
           echo "📦 SIMULATING: GitHub Release Creation"
           echo "════════════════════════════════════════════════════════════════"
           echo ""
-          
+
           NEW_TAG="${{ needs.simulate-git-tag.outputs.simulated-tag }}"
           RELEASE_TYPE="${{ needs.simulate-git-tag.outputs.simulated-release-type }}"
-          
+
           # Get current latest tag for changelog simulation
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          
+
           echo "📋 Release Information:"
           echo "  • Tag: $NEW_TAG"
           echo "  • Release Type: $RELEASE_TYPE"
           echo "  • Previous Tag: $LATEST_TAG"
           echo ""
-          
+
           echo "📝 Simulated Release Notes:"
           echo "────────────────────────────────────────────────────────────────"
           echo "## What's Changed"
           echo ""
-          
+
           # Get commits between tags (simulated changelog)
           if [ "$LATEST_TAG" != "v0.0.0" ]; then
             echo "Commits since $LATEST_TAG:"
@@ -459,7 +459,7 @@ jobs:
           else
             echo "- Initial release"
           fi
-          
+
           echo ""
           echo ""
           echo "## Deployment Info"
@@ -493,14 +493,14 @@ jobs:
           echo "  2. ✅ Git Tag Creation → ${{ needs.simulate-git-tag.outputs.simulated-tag }}"
           echo "  3. ✅ Lint Check"
           echo "  4. ✅ Type Check"
-          
+
           SKIP_STATUS="${{ needs.check-commit-type.outputs.should-skip-e2e }}"
           if [ "$SKIP_STATUS" = "true" ]; then
             echo "  5. ⏭️ E2E Tests (SKIPPED - commit type or manual flag)"
           else
             echo "  5. ✅ E2E Tests"
           fi
-          
+
           echo "  6. ✅ Production Build"
           echo "  7. ✅ Vercel Deployment"
           echo "  8. ✅ GitHub Release Creation"
