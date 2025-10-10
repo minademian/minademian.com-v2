@@ -50,6 +50,7 @@ jobs:
     needs: [typecheck]
     outputs:
       skip-e2e: ${{ steps.check.outputs.skip-e2e }}
+      skip-unit-tests: ${{ steps.check.outputs.skip-unit-tests }}
       commit-type: ${{ steps.check.outputs.commit-type }}
     steps:
       - name: Checkout repository
@@ -62,6 +63,7 @@ jobs:
         shell: bash
         run: |
           SKIP_E2E="false"
+          SKIP_UNIT_TESTS="false"
           COMMIT_TYPE="feature"
 
           echo "🔍 Checking recent commit messages for CI/Chore/Docs patterns..."
@@ -70,8 +72,9 @@ jobs:
           # Matches: ci:, chore:, docs:, <any-type>(ci):
           if git log --oneline -n 3 | grep -qE "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):)"; then
             SKIP_E2E="true"
+            SKIP_UNIT_TESTS="true"
             COMMIT_TYPE="ci-chore-docs"
-            echo "🔧 CI/Chore/Docs commit detected - skipping E2E tests"
+            echo "🔧 CI/Chore/Docs commit detected - skipping E2E and unit tests"
             echo ""
             echo "Matching commits found:"
             git log --oneline -n 3 | grep -E "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):)" || true
@@ -79,21 +82,41 @@ jobs:
             echo "All recent commits:"
             git log --oneline -n 3
             echo ""
-            echo "E2E tests will be skipped for CI/CD/documentation related changes."
+            echo "E2E and unit tests will be skipped for CI/CD/documentation related changes."
           else
-            echo "✅ Feature commit detected - E2E tests will run"
+            echo "✅ Feature commit detected - E2E and unit tests will run"
             echo "Recent commits:"
             git log --oneline -n 3
           fi
 
           echo "skip-e2e=$SKIP_E2E" >> $GITHUB_OUTPUT
+          echo "skip-unit-tests=$SKIP_UNIT_TESTS" >> $GITHUB_OUTPUT
           echo "commit-type=$COMMIT_TYPE" >> $GITHUB_OUTPUT
           echo "Final E2E skip setting: $SKIP_E2E"
+          echo "Final unit tests skip setting: $SKIP_UNIT_TESTS"
+
+  bdd-tests:
+    name: BDD Tests
+    runs-on: ubuntu-latest
+    needs: [check-commit-type]
+    if: needs.check-commit-type.outputs.skip-unit-tests != 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Run BDD smoke tests
+        uses: ./.github/actions/bdd-tests
+        with:
+          test-type: 'smoke'
 
   e2e-tests:
     name: E2E Tests
     uses: ./.github/workflows/e2e.yml
-    needs: [check-commit-type]
+    needs: [check-commit-type, bdd-tests]
+    if: always() && (needs.bdd-tests.result == 'success' || needs.bdd-tests.result == 'skipped')
     with:
       environment: 'development'
       fail_on_error: true  # Blocking: fail the pipeline if e2e tests fail
@@ -102,8 +125,8 @@ jobs:
   build:
     name: Build Project
     runs-on: ubuntu-latest
-    needs: [e2e-tests]
-    if: always() && needs.lint.result == 'success' && needs.typecheck.result == 'success' && (needs.e2e-tests.result == 'success' || needs.e2e-tests.result == 'skipped')
+    needs: [bdd-tests, e2e-tests]
+    if: always() && needs.lint.result == 'success' && needs.typecheck.result == 'success' && (needs.bdd-tests.result == 'success' || needs.bdd-tests.result == 'skipped') && (needs.e2e-tests.result == 'success' || needs.e2e-tests.result == 'skipped')
     outputs:
       artifacts-uploaded: ${{ steps.check-upload.outputs.artifacts-uploaded }}
       cache-hit: ${{ steps.build-cache.outputs.cache-hit }}

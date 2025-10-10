@@ -1,0 +1,37 @@
+name: 'Run BDD Tests'
+description: 'Runs Cucumber BDD smoke tests using Playwright'
+
+inputs:
+  test-type:
+    description: 'Type of tests to run (smoke, all, debug)'
+    required: false
+    default: 'smoke'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run BDD tests
+      shell: bash
+      run: |
+        echo "🥒 Running Cucumber BDD tests (type: ${{ inputs.test-type }})"
+
+        case "${{ inputs.test-type }}" in
+          smoke)
+            echo "Running smoke tests..."
+            pnpm test:cucumber:smoke
+            ;;
+          all)
+            echo "Running all tests..."
+            pnpm test:cucumber
+            ;;
+          debug)
+            echo "Running tests in debug mode..."
+            pnpm test:cucumber:debug
+            ;;
+          *)
+            echo "⚠️  Unknown test type '${{ inputs.test-type }}', defaulting to smoke"
+            pnpm test:cucumber:smoke
+            ;;
+        esac
+
+        echo "✅ BDD tests completed successfully"
