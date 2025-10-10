@@ -1,0 +1,522 @@
+name: 🔍 Dry Run Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_type:
+        description: 'Deployment type'
+        required: true
+        type: choice
+        options:
+          - automatic
+          - manual
+        default: 'automatic'
+      release_type:
+        description: 'Release type (for automatic deployment)'
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+        default: 'patch'
+      skip_e2e:
+        description: 'Skip E2E tests?'
+        required: true
+        type: boolean
+        default: false
+      mock_commit_message:
+        description: 'Mock commit message (to test E2E trigger logic)'
+        required: false
+        type: string
+        default: 'feat: add new feature'
+      deploy_environment:
+        description: 'Deploy environment'
+        required: true
+        type: choice
+        options:
+          - production
+          - staging
+        default: 'production'
+      cache_scenario:
+        description: 'Cache scenario'
+        required: true
+        type: choice
+        options:
+          - cache-hit
+          - cache-miss
+        default: 'cache-hit'
+
+jobs:
+  dry-run-info:
+    name: 📋 Dry Run Information
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display Configuration
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "🔍 DRY RUN MODE - No actual deployment will occur"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          echo "📊 Configuration:"
+          echo "  • Deployment Type: ${{ github.event.inputs.deployment_type }}"
+          echo "  • Release Type: ${{ github.event.inputs.release_type }}"
+          echo "  • Skip E2E: ${{ github.event.inputs.skip_e2e }}"
+          echo "  • Mock Commit: ${{ github.event.inputs.mock_commit_message }}"
+          echo "  • Deploy Environment: ${{ github.event.inputs.deploy_environment }}"
+          echo "  • Cache Scenario: ${{ github.event.inputs.cache_scenario }}"
+          echo ""
+          echo "════════════════════════════════════════════════════════════════"
+
+  check-commit-type:
+    name: 🔍 Check Commit Type
+    runs-on: ubuntu-latest
+    needs: [dry-run-info]
+    outputs:
+      should-skip-e2e: ${{ steps.check.outputs.should-skip-e2e }}
+      commit-type: ${{ steps.check.outputs.commit-type }}
+      matched-pattern: ${{ steps.check.outputs.matched-pattern }}
+    steps:
+      - name: Analyze Commit Message
+        id: check
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "🔍 ANALYZING: Commit Message for E2E Trigger"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          
+          COMMIT_MSG="${{ github.event.inputs.mock_commit_message }}"
+          MANUAL_SKIP="${{ github.event.inputs.skip_e2e }}"
+          
+          echo "📝 Mock Commit Message:"
+          echo "   \"$COMMIT_MSG\""
+          echo ""
+          echo "⚙️ Manual Skip E2E Flag: $MANUAL_SKIP"
+          echo ""
+          
+          SHOULD_SKIP="false"
+          COMMIT_TYPE="unknown"
+          MATCHED_PATTERN="none"
+          
+          # Check if commit matches ci-only patterns (should skip E2E)
+          if echo "$COMMIT_MSG" | grep -qE '^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\)):'; then
+            SHOULD_SKIP="true"
+            
+            if echo "$COMMIT_MSG" | grep -qE '^[a-f0-9]+ ci:'; then
+              COMMIT_TYPE="ci"
+              MATCHED_PATTERN="ci:"
+            elif echo "$COMMIT_MSG" | grep -qE '^[a-f0-9]+ chore:'; then
+              COMMIT_TYPE="chore"
+              MATCHED_PATTERN="chore:"
+            elif echo "$COMMIT_MSG" | grep -qE '^[a-f0-9]+ docs:'; then
+              COMMIT_TYPE="docs"
+              MATCHED_PATTERN="docs:"
+            elif echo "$COMMIT_MSG" | grep -qE '^[a-f0-9]+ [a-z]+\(ci\):'; then
+              COMMIT_TYPE=$(echo "$COMMIT_MSG" | grep -oE '^[a-f0-9]+ [a-z]+\(ci\):' | grep -oE '[a-z]+\(ci\)' | sed 's/(ci)//')
+              MATCHED_PATTERN="$COMMIT_TYPE(ci):"
+            fi
+            
+            echo "✅ Commit matches CI-only pattern: $MATCHED_PATTERN"
+            echo "   → E2E tests would be SKIPPED (commit-based)"
+          else
+            COMMIT_TYPE=$(echo "$COMMIT_MSG" | grep -oE '^[a-f0-9]+ [a-z]+' | awk '{print $2}' || echo "unknown")
+            echo "📋 Commit type: $COMMIT_TYPE"
+            echo "   → E2E tests would be TRIGGERED (commit requires testing)"
+          fi
+          
+          echo ""
+          
+          # Override with manual skip if provided
+          if [ "$MANUAL_SKIP" = "true" ]; then
+            echo "⚠️ Manual skip flag is TRUE - E2E will be skipped regardless of commit"
+            SHOULD_SKIP="true"
+          fi
+          
+          echo ""
+          echo "🎯 Final Decision:"
+          if [ "$SHOULD_SKIP" = "true" ]; then
+            echo "   ⏭️ E2E tests would be SKIPPED"
+          else
+            echo "   ✅ E2E tests would be TRIGGERED"
+          fi
+          
+          echo ""
+          echo "════════════════════════════════════════════════════════════════"
+          
+          echo "should-skip-e2e=$SHOULD_SKIP" >> $GITHUB_OUTPUT
+          echo "commit-type=$COMMIT_TYPE" >> $GITHUB_OUTPUT
+          echo "matched-pattern=$MATCHED_PATTERN" >> $GITHUB_OUTPUT
+
+  simulate-git-tag:
+    name: 🏷️ Simulate Git Tag Creation
+    runs-on: ubuntu-latest
+    needs: [check-commit-type]
+    outputs:
+      simulated-tag: ${{ steps.simulate.outputs.simulated-tag }}
+      simulated-release-type: ${{ steps.simulate.outputs.simulated-release-type }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Simulate Tag Creation
+        id: simulate
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "🏷️ SIMULATING: Git Tag Creation"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          
+          # Get current latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "📌 Current Latest Tag: $LATEST_TAG"
+          
+          # Calculate next version based on release type
+          VERSION=${LATEST_TAG#v}
+          IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
+          MAJOR=${VERSION_PARTS[0]:-0}
+          MINOR=${VERSION_PARTS[1]:-0}
+          PATCH=${VERSION_PARTS[2]:-0}
+          
+          RELEASE_TYPE="${{ github.event.inputs.release_type }}"
+          
+          case $RELEASE_TYPE in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+          
+          echo ""
+          echo "🔢 Version Calculation:"
+          echo "  • Release Type: $RELEASE_TYPE"
+          echo "  • Current: $LATEST_TAG"
+          echo "  • Next: $NEW_TAG"
+          echo ""
+          echo "✅ Would create tag: $NEW_TAG"
+          echo ""
+          echo "🚫 DRY RUN: Tag NOT actually created"
+          echo "════════════════════════════════════════════════════════════════"
+          
+          echo "simulated-tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "simulated-release-type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+
+  simulate-lint:
+    name: 🔍 Simulate Lint
+    runs-on: ubuntu-latest
+    needs: [simulate-git-tag]
+    steps:
+      - name: Simulate Lint Check
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "🔍 SIMULATING: Lint Check"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          echo "📋 In actual workflow, this would:"
+          echo "  • Checkout code"
+          echo "  • Install dependencies (pnpm install)"
+          echo "  • Run linting (pnpm run lint)"
+          echo "  • Report any linting errors"
+          echo ""
+          echo "✅ Lint check would run here"
+          echo "🚫 DRY RUN: Actual lint NOT executed"
+          echo "════════════════════════════════════════════════════════════════"
+
+  simulate-typecheck:
+    name: 🔍 Simulate Type Check
+    runs-on: ubuntu-latest
+    needs: [simulate-lint]
+    steps:
+      - name: Simulate Type Check
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "🔍 SIMULATING: Type Check"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          echo "📋 In actual workflow, this would:"
+          echo "  • Checkout code"
+          echo "  • Install dependencies (pnpm install)"
+          echo "  • Run type checking (pnpm run type-check or tsc --noEmit)"
+          echo "  • Report any type errors"
+          echo ""
+          echo "✅ Type check would run here"
+          echo "🚫 DRY RUN: Actual type check NOT executed"
+          echo "════════════════════════════════════════════════════════════════"
+
+  simulate-e2e:
+    name: 🧪 Simulate E2E Tests
+    runs-on: ubuntu-latest
+    needs: [simulate-typecheck, check-commit-type]
+    steps:
+      - name: Check Skip Status
+        id: check-skip
+        run: |
+          SHOULD_SKIP="${{ needs.check-commit-type.outputs.should-skip-e2e }}"
+          echo "skip=$SHOULD_SKIP" >> $GITHUB_OUTPUT
+
+      - name: Simulate E2E Tests
+        if: steps.check-skip.outputs.skip != 'true'
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "🧪 SIMULATING: E2E Tests"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          echo "� E2E Decision Analysis:"
+          echo "  • Commit Type: ${{ needs.check-commit-type.outputs.commit-type }}"
+          echo "  • Matched Pattern: ${{ needs.check-commit-type.outputs.matched-pattern }}"
+          echo "  • Should Skip: ${{ needs.check-commit-type.outputs.should-skip-e2e }}"
+          echo ""
+          echo "�📋 In actual workflow, this would:"
+          echo "  • Checkout code"
+          echo "  • Install dependencies (pnpm install)"
+          echo "  • Install Playwright browsers"
+          echo "  • Run E2E tests (pnpm run test:e2e)"
+          echo "  • Upload test results and artifacts"
+          echo ""
+          echo "✅ E2E tests would run here"
+          echo "🚫 DRY RUN: Actual E2E tests NOT executed"
+          echo "════════════════════════════════════════════════════════════════"
+
+      - name: E2E Tests Skipped
+        if: steps.check-skip.outputs.skip == 'true'
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "⏭️ SIMULATING: E2E Tests (SKIPPED)"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          echo "🔍 E2E Decision Analysis:"
+          echo "  • Commit Type: ${{ needs.check-commit-type.outputs.commit-type }}"
+          echo "  • Matched Pattern: ${{ needs.check-commit-type.outputs.matched-pattern }}"
+          echo "  • Should Skip: ${{ needs.check-commit-type.outputs.should-skip-e2e }}"
+          echo ""
+          echo "⚠️ E2E tests would be skipped based on:"
+          if [ "${{ needs.check-commit-type.outputs.matched-pattern }}" != "none" ]; then
+            echo "  • Commit pattern: ${{ needs.check-commit-type.outputs.matched-pattern }}"
+          fi
+          if [ "${{ github.event.inputs.skip_e2e }}" = "true" ]; then
+            echo "  • Manual skip flag: true"
+          fi
+          echo ""
+          echo "🚫 DRY RUN: E2E tests NOT executed"
+          echo "════════════════════════════════════════════════════════════════"
+
+  simulate-build:
+    name: 🏗️ Simulate Build
+    runs-on: ubuntu-latest
+    needs: [simulate-e2e]
+    steps:
+      - name: Simulate Build with Cache
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "🏗️ SIMULATING: Production Build"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          
+          CACHE_SCENARIO="${{ github.event.inputs.cache_scenario }}"
+          
+          echo "💾 Cache Scenario: $CACHE_SCENARIO"
+          echo ""
+          
+          if [ "$CACHE_SCENARIO" = "cache-hit" ]; then
+            echo "✅ CACHE HIT - Dependencies cached"
+            echo ""
+            echo "📋 In actual workflow, this would:"
+            echo "  • Checkout code"
+            echo "  • Restore cached dependencies (pnpm store)"
+            echo "  • Skip dependency installation (using cache)"
+            echo "  • Restore cached build artifacts (if available)"
+            echo "  • Build for production (pnpm run build)"
+            echo "  • Upload build artifacts"
+            echo ""
+            echo "⚡ Build time: ~2-3 minutes (with cache)"
+          else
+            echo "❌ CACHE MISS - Fresh installation required"
+            echo ""
+            echo "📋 In actual workflow, this would:"
+            echo "  • Checkout code"
+            echo "  • Install dependencies from scratch (pnpm install)"
+            echo "  • Build for production (pnpm run build)"
+            echo "  • Cache dependencies for future runs"
+            echo "  • Upload build artifacts"
+            echo ""
+            echo "⏱️ Build time: ~5-8 minutes (without cache)"
+          fi
+          
+          echo ""
+          echo "✅ Production build would complete here"
+          echo "🚫 DRY RUN: Actual build NOT executed"
+          echo "════════════════════════════════════════════════════════════════"
+
+  simulate-deploy:
+    name: 🚀 Simulate Deployment
+    runs-on: ubuntu-latest
+    needs: [simulate-build, simulate-git-tag]
+    steps:
+      - name: Simulate Deployment
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "🚀 SIMULATING: Deployment to Vercel"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          
+          DEPLOY_ENV="${{ github.event.inputs.deploy_environment }}"
+          
+          echo "📋 Configuration:"
+          echo "  • Tag: ${{ needs.simulate-git-tag.outputs.simulated-tag }}"
+          echo "  • Release Type: ${{ needs.simulate-git-tag.outputs.simulated-release-type }}"
+          echo "  • Deployment Type: ${{ github.event.inputs.deployment_type }}"
+          echo "  • Deploy Environment: $DEPLOY_ENV"
+          echo "  • Cache Scenario: ${{ github.event.inputs.cache_scenario }}"
+          echo ""
+          
+          if [ "$DEPLOY_ENV" = "production" ]; then
+            echo "🌐 PRODUCTION DEPLOYMENT"
+            echo ""
+            echo "📋 In actual workflow, this would:"
+            echo "  • Download build artifacts"
+            echo "  • Deploy to Vercel production"
+            echo "  • Assign production domain"
+            echo "  • Wait for deployment to complete"
+            echo "  • Run production smoke tests"
+            echo "  • Capture deployment URL"
+            echo ""
+            echo "✅ Deployment would occur to PRODUCTION"
+            echo ""
+            echo "📊 Expected deployment URL:"
+            echo "  • https://minademian.com (simulated)"
+            echo "  • Production environment"
+          else
+            echo "🧪 STAGING DEPLOYMENT"
+            echo ""
+            echo "📋 In actual workflow, this would:"
+            echo "  • Download build artifacts"
+            echo "  • Deploy to Vercel staging/preview"
+            echo "  • Assign preview domain"
+            echo "  • Wait for deployment to complete"
+            echo "  • Run staging smoke tests"
+            echo "  • Capture deployment URL"
+            echo ""
+            echo "✅ Deployment would occur to STAGING"
+            echo ""
+            echo "📊 Expected deployment URL:"
+            echo "  • https://staging-minademian.vercel.app (simulated)"
+            echo "  • Staging/preview environment"
+          fi
+          
+          echo ""
+          echo "🚫 DRY RUN: Actual deployment NOT executed"
+          echo "════════════════════════════════════════════════════════════════"
+
+  simulate-release:
+    name: 📦 Simulate GitHub Release
+    runs-on: ubuntu-latest
+    needs: [simulate-deploy, simulate-git-tag]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Simulate Release Creation
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "📦 SIMULATING: GitHub Release Creation"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          
+          NEW_TAG="${{ needs.simulate-git-tag.outputs.simulated-tag }}"
+          RELEASE_TYPE="${{ needs.simulate-git-tag.outputs.simulated-release-type }}"
+          
+          # Get current latest tag for changelog simulation
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          
+          echo "📋 Release Information:"
+          echo "  • Tag: $NEW_TAG"
+          echo "  • Release Type: $RELEASE_TYPE"
+          echo "  • Previous Tag: $LATEST_TAG"
+          echo ""
+          
+          echo "📝 Simulated Release Notes:"
+          echo "────────────────────────────────────────────────────────────────"
+          echo "## What's Changed"
+          echo ""
+          
+          # Get commits between tags (simulated changelog)
+          if [ "$LATEST_TAG" != "v0.0.0" ]; then
+            echo "Commits since $LATEST_TAG:"
+            git log --pretty=format:"- %s (%h)" "$LATEST_TAG"..HEAD | head -10
+          else
+            echo "- Initial release"
+          fi
+          
+          echo ""
+          echo ""
+          echo "## Deployment Info"
+          echo ""
+          echo "🌐 **Production URL**: https://minademian.com (simulated)"
+          echo "🔗 **Release URL**: https://github.com/${{ github.repository }}/releases/tag/$NEW_TAG (simulated)"
+          echo ""
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/$LATEST_TAG...$NEW_TAG"
+          echo "────────────────────────────────────────────────────────────────"
+          echo ""
+          echo "✅ GitHub release would be created with above content"
+          echo "🚫 DRY RUN: Actual release NOT created"
+          echo "════════════════════════════════════════════════════════════════"
+
+  dry-run-summary:
+    name: 📊 Dry Run Summary
+    runs-on: ubuntu-latest
+    needs: [simulate-git-tag, simulate-lint, simulate-typecheck, check-commit-type, simulate-e2e, simulate-build, simulate-deploy, simulate-release]
+    if: always()
+    steps:
+      - name: Display Summary
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "📊 DRY RUN COMPLETE - Summary"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+          echo "✅ All workflow steps simulated successfully!"
+          echo ""
+          echo "🔄 Simulated Workflow:"
+          echo "  1. ✅ Commit Analysis → Type: ${{ needs.check-commit-type.outputs.commit-type }}"
+          echo "  2. ✅ Git Tag Creation → ${{ needs.simulate-git-tag.outputs.simulated-tag }}"
+          echo "  3. ✅ Lint Check"
+          echo "  4. ✅ Type Check"
+          
+          SKIP_STATUS="${{ needs.check-commit-type.outputs.should-skip-e2e }}"
+          if [ "$SKIP_STATUS" = "true" ]; then
+            echo "  5. ⏭️ E2E Tests (SKIPPED - commit type or manual flag)"
+          else
+            echo "  5. ✅ E2E Tests"
+          fi
+          
+          echo "  6. ✅ Production Build"
+          echo "  7. ✅ Vercel Deployment"
+          echo "  8. ✅ GitHub Release Creation"
+          echo ""
+          echo "📋 Configuration Used:"
+          echo "  • Deployment Type: ${{ github.event.inputs.deployment_type }}"
+          echo "  • Release Type: ${{ github.event.inputs.release_type }}"
+          echo "  • Manual Skip E2E: ${{ github.event.inputs.skip_e2e }}"
+          echo "  • Mock Commit: ${{ github.event.inputs.mock_commit_message }}"
+          echo "  • Commit Type Detected: ${{ needs.check-commit-type.outputs.commit-type }}"
+          echo "  • E2E Would Skip: ${{ needs.check-commit-type.outputs.should-skip-e2e }}"
+          echo "  • Deploy Environment: ${{ github.event.inputs.deploy_environment }}"
+          echo "  • Cache Scenario: ${{ github.event.inputs.cache_scenario }}"
+          echo "  • Would Create Tag: ${{ needs.simulate-git-tag.outputs.simulated-tag }}"
+          echo ""
+          echo "💡 To run the actual release workflow:"
+          echo "  → Go to Actions → Release and Deploy → Run workflow"
+          echo ""
+          echo "════════════════════════════════════════════════════════════════"
