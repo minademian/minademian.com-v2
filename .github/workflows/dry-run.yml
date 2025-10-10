@@ -30,6 +30,11 @@ on:
         required: true
         type: boolean
         default: false
+      enable_debug_output:
+        description: 'Enable debug output?'
+        required: true
+        type: boolean
+        default: false
       mock_commit_message:
         description: 'Mock commit message (to test E2E trigger logic)'
         required: false
@@ -68,6 +73,7 @@ jobs:
           echo "  • Release Type: ${{ github.event.inputs.release_type }}"
           echo "  • Skip BDD: ${{ github.event.inputs.skip_bdd }}"
           echo "  • Skip E2E: ${{ github.event.inputs.skip_e2e }}"
+          echo "  • Enable Debug: ${{ github.event.inputs.enable_debug_output }}"
           echo "  • Mock Commit: ${{ github.event.inputs.mock_commit_message }}"
           echo "  • Deploy Environment: ${{ github.event.inputs.deploy_environment }}"
           echo "  • Cache Scenario: ${{ github.event.inputs.cache_scenario }}"
@@ -172,10 +178,72 @@ jobs:
           echo "commit-type=$COMMIT_TYPE" >> $GITHUB_OUTPUT
           echo "matched-pattern=$MATCHED_PATTERN" >> $GITHUB_OUTPUT
 
+  simulate-debug-flag:
+    name: 🐛 Simulate Debug Flag Check
+    runs-on: ubuntu-latest
+    needs: [check-commit-type]
+    outputs:
+      debug-enabled: ${{ steps.check.outputs.debug-enabled }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 10
+
+      - name: Check for debug flag
+        id: check
+        run: |
+          echo "════════════════════════════════════════════════════════════════"
+          echo "🐛 SIMULATING: Debug Flag Check"
+          echo "════════════════════════════════════════════════════════════════"
+          echo ""
+
+          DEBUG_ENABLED="false"
+          MOCK_COMMIT="${{ github.event.inputs.mock_commit_message }}"
+          MANUAL_DEBUG="${{ github.event.inputs.enable_debug_output }}"
+
+          echo "📋 Checking debug conditions:"
+          echo "  • Manual Debug Input: $MANUAL_DEBUG"
+          echo "  • Mock Commit Message: \"$MOCK_COMMIT\""
+          echo ""
+
+          # Check manual workflow input first (highest priority)
+          if [ "$MANUAL_DEBUG" = "true" ]; then
+            DEBUG_ENABLED="true"
+            echo "✅ Debug ENABLED via manual workflow input"
+          # Check if mock commit contains debug flag
+          elif echo "$MOCK_COMMIT" | grep -q "\[DEBUG_DEPLOYMENT_INFORMATION\]"; then
+            DEBUG_ENABLED="true"
+            echo "✅ Debug ENABLED via [DEBUG_DEPLOYMENT_INFORMATION] in commit message"
+          # Also check recent commits in the actual repo
+          elif git log --oneline -n 5 --grep="\[DEBUG_DEPLOYMENT_INFORMATION\]" | grep -q "DEBUG_DEPLOYMENT_INFORMATION"; then
+            DEBUG_ENABLED="true"
+            echo "✅ Debug ENABLED via recent commit containing [DEBUG_DEPLOYMENT_INFORMATION]"
+            echo "   Found in commit:"
+            git log --oneline -n 5 --grep="\[DEBUG_DEPLOYMENT_INFORMATION\]" | head -1
+          else
+            echo "ℹ️  Debug output DISABLED (no flag found)"
+          fi
+
+          echo ""
+          echo "🎯 Final Decision:"
+          if [ "$DEBUG_ENABLED" = "true" ]; then
+            echo "   🐛 Debug output would be ENABLED"
+            echo "   → Deployment logs would include verbose debugging information"
+          else
+            echo "   📊 Debug output would be DISABLED"
+            echo "   → Normal deployment logs only"
+          fi
+
+          echo ""
+          echo "════════════════════════════════════════════════════════════════"
+
+          echo "debug-enabled=$DEBUG_ENABLED" >> $GITHUB_OUTPUT
+
   simulate-git-tag:
     name: 🏷️ Simulate Git Tag Creation
     runs-on: ubuntu-latest
-    needs: [check-commit-type]
+    needs: [check-commit-type, simulate-debug-flag]
     outputs:
       simulated-tag: ${{ steps.simulate.outputs.simulated-tag }}
       simulated-release-type: ${{ steps.simulate.outputs.simulated-release-type }}
@@ -490,7 +558,6 @@ jobs:
           echo "## Deployment Info"
           echo ""
           echo "🌐 **Production URL**: https://minademian.com (simulated)"
-          echo "🔗 **Release URL**: https://github.com/${{ github.repository }}/releases/tag/$NEW_TAG (simulated)"
           echo ""
           echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/$LATEST_TAG...$NEW_TAG"
           echo "────────────────────────────────────────────────────────────────"
@@ -502,7 +569,7 @@ jobs:
   dry-run-summary:
     name: 📊 Dry Run Summary
     runs-on: ubuntu-latest
-    needs: [simulate-git-tag, simulate-lint, simulate-typecheck, check-commit-type, simulate-e2e, simulate-build, simulate-deploy, simulate-release]
+    needs: [simulate-git-tag, simulate-lint, simulate-typecheck, check-commit-type, simulate-debug-flag, simulate-e2e, simulate-build, simulate-deploy, simulate-release]
     if: always()
     steps:
       - name: Display Summary
@@ -542,10 +609,12 @@ jobs:
           echo "  • Release Type: ${{ github.event.inputs.release_type }}"
           echo "  • Manual Skip BDD: ${{ github.event.inputs.skip_bdd }}"
           echo "  • Manual Skip E2E: ${{ github.event.inputs.skip_e2e }}"
+          echo "  • Enable Debug Output: ${{ github.event.inputs.enable_debug_output }}"
           echo "  • Mock Commit: ${{ github.event.inputs.mock_commit_message }}"
           echo "  • Commit Type Detected: ${{ needs.check-commit-type.outputs.commit-type }}"
           echo "  • BDD Would Skip: ${{ needs.check-commit-type.outputs.should-skip-bdd }}"
           echo "  • E2E Would Skip: ${{ needs.check-commit-type.outputs.should-skip-e2e }}"
+          echo "  • Debug Would Enable: ${{ needs.simulate-debug-flag.outputs.debug-enabled }}"
           echo "  • Deploy Environment: ${{ github.event.inputs.deploy_environment }}"
           echo "  • Cache Scenario: ${{ github.event.inputs.cache_scenario }}"
           echo "  • Would Create Tag: ${{ needs.simulate-git-tag.outputs.simulated-tag }}"
