@@ -10,6 +10,27 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Install Playwright Browsers
+      shell: bash
+      run: |
+        echo "📦 Installing Playwright browsers..."
+        pnpm exec playwright install --with-deps chromium
+
+    - name: Start development server
+      shell: bash
+      run: |
+        echo "🚀 Starting Next.js development server..."
+        pnpm run dev &
+        
+        # Wait for server to be ready
+        echo "⏳ Waiting for server to start..."
+        timeout 60 bash -c 'until curl -s http://localhost:3000 > /dev/null; do sleep 1; done' || {
+          echo "❌ Server failed to start within 60 seconds"
+          exit 1
+        }
+        
+        echo "✅ Server is ready at http://localhost:3000"
+
     - name: Run BDD tests
       shell: bash
       run: |
