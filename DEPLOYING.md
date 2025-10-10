@@ -40,6 +40,166 @@ This project features a sophisticated deployment system with automated testing, 
 |----------|---------|---------|-------------------|
 | **Feature Branch** | Push to `feat/*`, `fix/*`, etc. | Testing + Sandbox Preview | `sandbox/{branch-name}/` |
 | **Release** | PR merge to `main` | Production Deployment | `releases/{version}/` + `latest/` |
+| **Dry Run** | Manual (workflow_dispatch) | Simulate entire release process | No deployment (simulation only) |
+
+### 🔍 Dry Run Workflow (`dry-run.yml`)
+
+The dry-run workflow provides a **safe, zero-risk way** to test and visualize the entire release pipeline without actually deploying anything or creating any artifacts.
+
+#### Purpose:
+- 🎯 **Test Configuration**: Validate workflow settings before real deployments
+- 📊 **Understand Pipeline**: See detailed explanation of each step
+- 🐛 **Debug Issues**: Identify problems without affecting production
+- 📚 **Learn System**: Educational tool for understanding CI/CD flow
+- ⚡ **Performance Testing**: Simulate cache scenarios and timing
+
+#### How to Use:
+1. Go to **Actions** → **🔍 Dry Run Release**
+2. Click **Run workflow**
+3. Configure simulation parameters (see below)
+4. Review detailed output for each job
+
+#### Configuration Options:
+
+| Parameter | Options | Default | Description |
+|-----------|---------|---------|-------------|
+| **Deployment Type** | `automatic`, `manual` | `automatic` | Type of deployment to simulate |
+| **Release Type** | `major`, `minor`, `patch` | `patch` | Version bump type |
+| **Skip E2E?** | `true`, `false` | `false` | Manual override to skip E2E tests |
+| **Mock Commit Message** | Free text | `feat: add new feature` | Test commit message for E2E trigger logic |
+| **Deploy Environment** | `production`, `staging` | `production` | Target environment |
+| **Cache Scenario** | `cache-hit`, `cache-miss` | `cache-hit` | Simulate build cache behavior |
+
+#### What It Simulates:
+
+1. **📋 Dry Run Info**: Configuration summary
+2. **🔍 Commit Analysis**:
+   - Analyzes mock commit message
+   - Determines if E2E should be triggered
+   - Shows pattern matching logic
+   - Examples:
+     - `ci: update workflow` → E2E skipped
+     - `feat: add feature` → E2E runs
+     - `fix(ci): repair action` → E2E skipped
+     - `fix: bug in app` → E2E runs
+
+3. **🏷️ Git Tag Creation**:
+   - Calculates next version number
+   - Shows version bump logic
+   - Example: `v2.2.3` + `patch` → `v2.2.4`
+   - **Does NOT create actual tag**
+
+4. **🔍 Lint & Type Check**:
+   - Shows what linting would check
+   - Explains type checking process
+   - **Does NOT run actual checks**
+
+5. **🧪 E2E Tests**:
+   - Shows E2E trigger decision
+   - Explains commit type analysis
+   - Displays matched patterns
+   - Shows skip reasons if applicable
+   - **Does NOT run actual tests**
+
+6. **🏗️ Build**:
+   - Simulates cache hit/miss scenarios
+   - Shows estimated build times:
+     - Cache hit: ~2-3 minutes
+     - Cache miss: ~5-8 minutes
+   - **Does NOT create actual build**
+
+7. **🚀 Deployment**:
+   - Shows production vs staging flow
+   - Displays expected URLs:
+     - Production: `https://minademian.com`
+     - Staging: `https://staging-minademian.vercel.app`
+   - **Does NOT deploy anything**
+
+8. **📦 GitHub Release**:
+   - Shows actual commit history
+   - Generates preview of release notes
+   - Shows what would be published
+   - **Does NOT create actual release**
+
+9. **📊 Summary**:
+   - Complete workflow overview
+   - All configuration used
+   - Decision points explained
+
+#### Use Cases:
+
+**Testing Commit Message Patterns:**
+```
+Mock Commit: "ci: update workflow"
+→ Shows: E2E would be skipped (ci commit)
+
+Mock Commit: "fix(ci): repair deployment"
+→ Shows: E2E would be skipped (ci-scoped)
+
+Mock Commit: "feat: add dark mode"
+→ Shows: E2E would run (regular feature)
+```
+
+**Testing Version Bumps:**
+```
+Current: v2.2.3
+Release Type: patch
+→ Shows: Would create v2.2.4
+
+Current: v2.2.3
+Release Type: minor
+→ Shows: Would create v2.3.0
+
+Current: v2.2.3
+Release Type: major
+→ Shows: Would create v3.0.0
+```
+
+**Testing Cache Scenarios:**
+```
+Cache: cache-hit
+→ Shows: Fast build (~2-3 min)
+
+Cache: cache-miss
+→ Shows: Full build (~5-8 min)
+```
+
+**Testing Environment Targets:**
+```
+Environment: production
+→ Shows: Deploy to minademian.com
+
+Environment: staging
+→ Shows: Deploy to staging preview URL
+```
+
+#### Benefits:
+
+✅ **Safe Experimentation**: Test any configuration without risk
+✅ **Clear Documentation**: Each step explains what happens
+✅ **Visual Learning**: See the entire pipeline flow
+✅ **Debug Tool**: Understand why E2E tests run or skip
+✅ **Fast Feedback**: Complete simulation in ~1-2 minutes
+✅ **No Cleanup**: Nothing is created or deployed
+
+#### Example Workflow Output:
+
+```
+════════════════════════════════════════════════════════════════
+🔍 ANALYZING: Commit Message for E2E Trigger
+════════════════════════════════════════════════════════════════
+
+📝 Mock Commit Message:
+   "ci: update GitHub Actions workflow"
+
+✅ Commit matches CI-only pattern: ci:
+   → E2E tests would be SKIPPED (commit-based)
+
+🎯 Final Decision:
+   ⏭️ E2E tests would be SKIPPED
+
+════════════════════════════════════════════════════════════════
+```
 
 ### Feature Branch Workflow (`feature-branch.yml`)
 
