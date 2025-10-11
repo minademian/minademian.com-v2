@@ -1,47 +1,108 @@
-# NEW: minademian.com
+# minademian.com
 
-This is [minademian.com](https://minademian.com/) bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+[![CI/CD Pipeline](https://github.com/minademian/minademian.com-v2/actions/workflows/feature-branch.yml/badge.svg)](https://github.com/minademian/minademian.com-v2/actions/workflows/feature-branch.yml)
+[![Production Deploy](https://github.com/minademian/minademian.com-v2/actions/workflows/release.yml/badge.svg)](https://github.com/minademian/minademian.com-v2/actions/workflows/release.yml)
+[![E2E Tests](https://github.com/minademian/minademian.com-v2/actions/workflows/e2e.yml/badge.svg)](https://github.com/minademian/minademian.com-v2/actions/workflows/e2e.yml)
 
-## Changelog
-### v2.0
-- [x] darkmode
-- [x] responsive, mobile-first
+A modern, high-performance portfolio website built with Next.js 14 and TypeScript, featuring automated deployment pipelines and comprehensive CI/CD workflows.
 
-## Backlog
+🌐 **Live Site**: [minademian.com](https://minademian.com/)
 
-- [ ] CI/CD + GitHub Actions + deploy from cli
+## 🏗️ Architecture
 
-## Getting Started
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript with strict type checking
+- **Styling**: Tailwind CSS + Custom SCSS modules
+- **Package Manager**: pnpm for efficient dependency management
+- **Build**: Static site generation (SSG) with optimized output
+- **Testing**: End-to-end testing with Playwright (Chromium, Firefox, WebKit)
+- **Deployment**: Multi-environment with automated CI/CD
 
-First, run the development server:
+## 📋 Documentation
+
+- **[CHANGELOG.md](./CHANGELOG.md)** - Project history and version updates
+- **[DEPLOYING.md](./DEPLOYING.md)** - Comprehensive deployment guide and workflows
+- **[TESTING.md](./TESTING.md)** - End-to-end testing setup, usage, and CI/CD integration
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18.x or later
+- pnpm (recommended) or npm
+
+### Development Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Clone the repository
+git clone https://github.com/minademian/minademian.com-v2.git
+cd minademian.com-v2
+
+# Install dependencies
+pnpm install
+
+# Start development server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```bash
+# Development
+pnpm dev          # Start development server
+pnpm build        # Build for production
+pnpm start        # Start production server
 
-## Learn More
+# Code Quality
+pnpm lint              # Run ESLint
+pnpm lint:fix-trailing # Fix trailing spaces only
+pnpm type-check        # Run TypeScript compiler check
 
-To learn more about Next.js, take a look at the following resources:
+# Testing
+pnpm test:e2e           # Run end-to-end tests
+pnpm test:e2e:ui        # Run tests in interactive UI mode
+pnpm test:e2e:debug     # Run tests in debug mode
+pnpm test:e2e:report    # Show test report
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# BDD Testing (Cucumber)
+pnpm test:cucumber        # Run Cucumber BDD tests
+pnpm test:cucumber:watch  # Run BDD tests in watch mode (TDD)
+pnpm test:cucumber:smoke  # Run only smoke tests (@smoke tagged)
+pnpm test:bdd            # Alias for test:cucumber
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+# Git Pre-commit
+pnpm pre-commit-check     # Full checks before commit (lint + types)
+```
 
-## Deploy on Vercel
+## ⚙️ Development Configuration
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Environment Variables
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+The application uses Next.js built-in environment handling. Create `.env.local` for local development:
+
+```bash
+# Local development overrides (not committed)
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+For deployment configuration and CI/CD setup, see **[DEPLOYING.md](./DEPLOYING.md)**.
+
+## 🧪 Testing
+
+This project uses comprehensive **End-to-End (E2E)** and **Behavior-Driven Development (BDD)** testing:
+
+- **Playwright E2E**: Cross-browser testing with CI integration
+- **Cucumber BDD**: Human-readable scenarios with TypeScript support
+- **Smart Optimization**: E2E tests automatically skipped for CI/CD commits
+
+For complete testing documentation, see **[TESTING.md](./TESTING.md)**.
+
+## 📄 License
+
+This project is private and proprietary. All rights reserved.
+
+---
+
+Built with ❤️ using modern web technologies and enterprise-grade deployment practices.

@@ -1,15 +1,15 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { Montserrat } from 'next/font/google';
-import Script from 'next/script';
-import { usePathname } from 'next/navigation';
-
 import { AnimatePresence } from 'framer-motion';
+import { Montserrat } from 'next/font/google';
+import { usePathname } from 'next/navigation';
+import Script from 'next/script';
+import { useEffect, useState } from 'react';
+
 
 import '@/styles/globals.css';
 
-import NavBar from '@/organisms/NavBar.component';
 import Footer from '@/organisms/Footer.component';
+import NavBar from '@/organisms/NavBar.component';
 
 const montserrat = Montserrat({ subsets: ['latin'], variable: '--font-mont' });
 
@@ -21,8 +21,8 @@ export default function RootLayout({
   const path = usePathname();
   const [title, setTitle] = useState('');
 
-  let rawPath = path === '/' ? 'Home' : path.replace('/', '');
-  let final = rawPath
+  const rawPath = path === '/' ? 'Home' : path.replace('/', '');
+  const final = rawPath
     .toLowerCase()
     .split(' ')
     .map((word) => {

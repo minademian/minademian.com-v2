@@ -1,5 +1,6 @@
-import React, { FC, useRef, ReactElement } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { FC, ReactElement } from 'react';
+
 import { MobileNavLinkProps } from '@/app/types/NavBar.type';
 
 const MobileNavLink: FC<MobileNavLinkProps> = ({

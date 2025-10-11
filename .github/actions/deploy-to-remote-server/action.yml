@@ -1,0 +1,425 @@
+name: 'Deploy to Remote Server'
+description: 'Deploy website to remote server with configurable deployment modes'
+
+inputs:
+  # Deployment configuration
+  deployment-mode:
+    description: 'Deployment mode (automatic, manual, sandbox, skip)'
+    required: true
+  deployment-type:
+    description: 'Type of deployment (production, sandbox, release)'
+    required: false
+    default: ''
+
+  # Context information (for auto-configuration)
+  event-name:
+    description: 'GitHub event name (for auto-configuration)'
+    required: false
+    default: ''
+  ref:
+    description: 'GitHub ref (for auto-configuration)'
+    required: false
+    default: ''
+  ref-name:
+    description: 'GitHub ref name (for auto-configuration)'
+    required: false
+    default: ''
+
+  # Version/Branch information
+  git-tag:
+    description: 'Git tag (for release deployments)'
+    required: false
+    default: ''
+  branch-name:
+    description: 'Branch name (for sandbox deployments)'
+    required: false
+    default: ''
+
+  # Artifact checking
+  build-artifacts-available:
+    description: 'Whether build artifacts are available (true/false)'
+    required: false
+    default: 'true'
+
+  # Build artifact
+  build-artifact-name:
+    description: 'Name of the build artifact to deploy'
+    required: true
+    default: 'build-files'
+
+  # Server connection
+  ssh-host:
+    description: 'SSH/SFTP host'
+    required: true
+  ssh-username:
+    description: 'SSH/SFTP username'
+    required: true
+  ssh-password:
+    description: 'SSH/SFTP password'
+    required: true
+
+  # Deployment paths
+  base-path:
+    description: 'Base path on server (e.g., /home/username/domain.com)'
+    required: true
+  target-path:
+    description: 'Target deployment path on server (relative to base-path)'
+    required: false
+    default: ''
+
+  # Optional debug information (for enhanced logging)
+  deployment-type-input:
+    description: 'Deployment type from workflow input (for debug output)'
+    required: false
+    default: ''
+  tag-to-deploy:
+    description: 'Tag to deploy from workflow input (for debug output)'
+    required: false
+    default: ''
+  deploy-target:
+    description: 'Deploy target from workflow input (for debug output)'
+    required: false
+    default: ''
+  create-github-release:
+    description: 'Create GitHub release flag from workflow input (for debug output)'
+    required: false
+    default: ''
+  create-tag-result:
+    description: 'Result of create-tag job (for debug output)'
+    required: false
+    default: ''
+  is-manual-release:
+    description: 'Is manual release flag from create-tag job (for debug output)'
+    required: false
+    default: ''
+  should-create-release:
+    description: 'Should create release flag from create-tag job (for debug output)'
+    required: false
+    default: ''
+  debug-enabled:
+    description: 'Whether to show detailed debug information (true/false)'
+    required: false
+    default: 'false'
+
+outputs:
+  deployment-url:
+    description: 'URL of the deployed application'
+    value: ${{ steps.generate-summary.outputs.deployment-url || steps.configure.outputs.deployment-url }}
+  deployment-path:
+    description: 'Remote path where files were deployed'
+    value: ${{ steps.generate-summary.outputs.deployment-path }}
+  full-target-path:
+    description: 'Full target path (base-path + target-path)'
+    value: ${{ steps.prepare.outputs.full-target-path || steps.configure.outputs.target-path }}
+  deployment-skipped:
+    description: 'Whether deployment was skipped'
+    value: ${{ steps.check-skip.outputs.deployment-skipped }}
+  skip-reason:
+    description: 'Reason for skipping deployment'
+    value: ${{ steps.check-skip.outputs.skip-reason }}
+  # Configuration outputs (for compatibility)
+  deployment-type:
+    description: 'Final deployment type'
+    value: ${{ steps.configure.outputs.deployment-type }}
+  branch-name:
+    description: 'Branch name (for sandbox)'
+    value: ${{ steps.configure.outputs.branch-name }}
+  target-path:
+    description: 'Target path'
+    value: ${{ steps.configure.outputs.target-path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Check if deployment should be skipped
+      id: check-skip
+      shell: bash
+      run: |
+        DEPLOYMENT_SKIPPED="false"
+        SKIP_REASON=""
+
+        if [ "${{ inputs.deployment-mode }}" = "skip" ]; then
+          DEPLOYMENT_SKIPPED="true"
+          SKIP_REASON="${{ inputs.build-artifacts-available == 'false' && 'No build artifacts available' || 'Deployment explicitly skipped' }}"
+          echo "🚫 Deployment will be skipped: $SKIP_REASON"
+        elif [ "${{ inputs.build-artifacts-available }}" = "false" ]; then
+          DEPLOYMENT_SKIPPED="true"
+          SKIP_REASON="No build artifacts were generated"
+          echo "🚫 Deployment skipped: $SKIP_REASON"
+        else
+          echo "✅ Deployment will proceed"
+        fi
+
+        echo "deployment-skipped=$DEPLOYMENT_SKIPPED" >> $GITHUB_OUTPUT
+        echo "skip-reason=$SKIP_REASON" >> $GITHUB_OUTPUT
+
+    - name: Configure deployment
+      id: configure
+      if: steps.check-skip.outputs.deployment-skipped != 'true'
+      uses: ./.github/actions/configure-deployment
+      with:
+        event-name: ${{ inputs.event-name }}
+        ref: ${{ inputs.ref }}
+        ref-name: ${{ inputs.ref-name }}
+        branch-name: ${{ inputs.branch-name }}
+        git-tag: ${{ inputs.git-tag }}
+        deployment-context: ${{ inputs.deployment-mode == 'sandbox' && 'sandbox' || (inputs.deployment-mode == 'manual' && 'release' || 'production') }}
+        base-path: ${{ inputs.base-path }}
+        # Optional debug parameters
+        deployment-type-input: ${{ inputs.deployment-type-input }}
+        tag-to-deploy: ${{ inputs.tag-to-deploy }}
+        deploy-target: ${{ inputs.deploy-target }}
+        create-github-release: ${{ inputs.create-github-release }}
+        create-tag-result: ${{ inputs.create-tag-result }}
+        is-manual-release: ${{ inputs.is-manual-release }}
+        should-create-release: ${{ inputs.should-create-release }}
+        debug-enabled: ${{ inputs.debug-enabled }}
+
+    - name: Notify deployment skip
+      if: steps.check-skip.outputs.deployment-skipped == 'true'
+      shell: bash
+      run: |
+        echo "🚫 Deployment skipped: ${{ steps.check-skip.outputs.skip-reason }}"
+        echo ""
+        echo "💡 Common causes:"
+        echo "   - Next.js config missing 'output: \"export\"'"
+        echo "   - Build command failed silently"
+        echo "   - Build outputs to a different directory"
+        echo ""
+        echo "**To fix:**"
+        echo "1. Check the build logs"
+        echo "2. Ensure next.config.js includes output: \"export\""
+        echo "3. Verify the build command completes successfully"
+
+    - name: Download build artifacts
+      if: steps.check-skip.outputs.deployment-skipped != 'true'
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.build-artifact-name }}
+        path: out/
+
+    - name: Prepare deployment configuration
+      id: prepare
+      if: steps.check-skip.outputs.deployment-skipped != 'true'
+      shell: bash
+      run: |
+        echo "🚀 Starting deployment preparation..."
+        echo ""
+        echo "📋 Deployment Configuration:"
+        echo "   🎯 Mode: ${{ inputs.deployment-mode }}"
+
+        # Use configured values if available, otherwise use inputs
+        DEPLOYMENT_TYPE="${{ steps.configure.outputs.deployment-type || inputs.deployment-type }}"
+        TARGET_PATH="${{ steps.configure.outputs.target-path || inputs.target-path }}"
+        BRANCH_NAME="${{ steps.configure.outputs.branch-name || inputs.branch-name }}"
+
+        echo "   � Type: $DEPLOYMENT_TYPE"
+        echo "   �🌐 Host: ${{ inputs.ssh-host }}"
+        echo "   👤 User: ${{ inputs.ssh-username }}"
+        echo "   📁 Base path: ${{ inputs.base-path }}"
+
+        # Use configured target path if available
+        if [ -n "$TARGET_PATH" ]; then
+          FULL_TARGET_PATH="${{ inputs.base-path }}/${TARGET_PATH}"
+          echo "   📁 Target path (configured): ${TARGET_PATH}"
+        else
+          # Fallback to manual calculation for backward compatibility
+          case "${{ inputs.deployment-mode }}" in
+            "automatic")
+              TARGET_PATH="${{ inputs.target-path }}"
+              echo "   🏠 Automatic deployment to production"
+              ;;
+            "manual")
+              if [ -n "${{ inputs.git-tag }}" ]; then
+                TAG_NUMBER="${{ inputs.git-tag }}"
+                TAG_NUMBER=${TAG_NUMBER#v}  # Remove 'v' prefix
+                TARGET_PATH="releases/${TAG_NUMBER}"
+                echo "   🏷️  Manual tagged deployment: ${{ inputs.git-tag }}"
+              else
+                echo "❌ Manual deployment requires git-tag"
+                exit 1
+              fi
+              ;;
+            "sandbox")
+              if [ -n "$BRANCH_NAME" ]; then
+                SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9.-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+                TARGET_PATH="sandboxes/${SANITIZED_BRANCH}"
+                echo "   🧪 Sandbox deployment: $BRANCH_NAME -> ${SANITIZED_BRANCH}"
+              else
+                echo "❌ Sandbox deployment requires branch-name"
+                exit 1
+              fi
+              ;;
+            *)
+              echo "❌ Unknown deployment mode: ${{ inputs.deployment-mode }}"
+              exit 1
+              ;;
+          esac
+          FULL_TARGET_PATH="${{ inputs.base-path }}/${TARGET_PATH}"
+        fi
+
+        echo "   📁 Full path: ${FULL_TARGET_PATH}"
+
+        # Verify build artifact
+        echo ""
+        echo "📦 Build artifact verification:"
+        HTML_COUNT=$(find ./out -type f -name "*.html" | wc -l)
+        TOTAL_COUNT=$(find ./out -type f | wc -l)
+        echo "   📄 HTML files: $HTML_COUNT"
+        echo "   📄 Total files: $TOTAL_COUNT"
+
+        if [ "$TOTAL_COUNT" -eq 0 ]; then
+          echo "❌ No files found in build artifact!"
+          exit 1
+        fi
+
+        echo ""
+        echo "📁 Sample files to deploy:"
+        find ./out -type f -name "*.html" | head -3
+
+        # Set outputs
+        echo "target-path=${TARGET_PATH}" >> $GITHUB_OUTPUT
+        echo "full-target-path=${FULL_TARGET_PATH}" >> $GITHUB_OUTPUT
+
+    - name: Create remote directory structure
+      if: steps.check-skip.outputs.deployment-skipped != 'true'
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ inputs.ssh-host }}
+        username: ${{ inputs.ssh-username }}
+        password: ${{ inputs.ssh-password }}
+        script: |
+          echo "🔍 Creating remote directory structure..."
+          TARGET_DIR="${{ steps.prepare.outputs.full-target-path }}"
+          echo "Target directory: $TARGET_DIR"
+
+          # Create directory if it doesn't exist
+          mkdir -p "$TARGET_DIR"
+
+          # Verify directory was created
+          if [ -d "$TARGET_DIR" ]; then
+            echo "✅ Directory structure ready: $TARGET_DIR"
+          else
+            echo "❌ Failed to create directory: $TARGET_DIR"
+            exit 1
+          fi
+
+    - name: Deploy files via SCP
+      if: steps.check-skip.outputs.deployment-skipped != 'true'
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ inputs.ssh-host }}
+        username: ${{ inputs.ssh-username }}
+        password: ${{ inputs.ssh-password }}
+        source: "out/*"
+        target: ${{ steps.prepare.outputs.full-target-path }}
+        strip_components: 1
+
+    - name: Update latest symlink (for release deployments)
+      if: inputs.deployment-mode == 'manual' && inputs.deployment-type == 'release' && inputs.git-tag != ''
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ inputs.ssh-host }}
+        username: ${{ inputs.ssh-username }}
+        password: ${{ inputs.ssh-password }}
+        script: |
+          cd "${{ inputs.base-path }}"
+          echo "🔗 Updating latest symlink..."
+          echo "Current directory: $(pwd)"
+          echo "Contents before symlink update:"
+          ls -la | grep -E "(latest|releases)" || echo "No existing latest/releases found"
+
+          # Remove existing latest (whether file, directory, or symlink)
+          if [ -L latest ]; then
+            echo "Removing existing symlink"
+            rm -f latest
+          elif [ -d latest ]; then
+            echo "Removing existing directory"
+            rm -rf latest
+          elif [ -f latest ]; then
+            echo "Removing existing file"
+            rm -f latest
+          fi
+
+          # Create new symlink
+          TAG_NUMBER="${{ inputs.git-tag }}"
+          TAG_NUMBER=${TAG_NUMBER#v}  # Remove 'v' prefix
+          ln -sf "releases/${TAG_NUMBER}" latest
+
+          echo "Contents after symlink update:"
+          ls -la | grep -E "(latest|releases)"
+          echo "Symlink verification:"
+          ls -la latest
+          echo "✅ Updated symlink: latest -> releases/${TAG_NUMBER}"
+
+    - name: Verify deployment
+      if: steps.check-skip.outputs.deployment-skipped != 'true'
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ inputs.ssh-host }}
+        username: ${{ inputs.ssh-username }}
+        password: ${{ inputs.ssh-password }}
+        script: |
+          echo "🔍 Verifying deployment..."
+          TARGET_DIR="${{ steps.prepare.outputs.full-target-path }}"
+
+          if [ -f "$TARGET_DIR/index.html" ]; then
+            echo "✅ Deployment verification successful - index.html found"
+            echo "📄 File count: $(find "$TARGET_DIR" -type f | wc -l)"
+          else
+            echo "⚠️ Deployment verification warning - index.html not found"
+            echo "📁 Directory contents:"
+            ls -la "$TARGET_DIR" || echo "Directory not accessible"
+          fi
+
+    - name: Generate deployment summary
+      id: generate-summary
+      shell: bash
+      run: |
+        if [ "${{ steps.check-skip.outputs.deployment-skipped }}" = "true" ]; then
+          echo "🚫 Deployment was skipped"
+          echo "Reason: ${{ steps.check-skip.outputs.skip-reason }}"
+          echo ""
+          echo "💡 To enable deployment:"
+          echo "   - Ensure build artifacts are generated"
+          echo "   - Check Next.js configuration includes output: 'export'"
+          echo "   - Verify build command completes successfully"
+        else
+          echo "✅ Deployment completed successfully!"
+
+          # Generate deployment URL based on configured values or fallback
+          DEPLOYMENT_URL="${{ steps.configure.outputs.deployment-url }}"
+          DEPLOYMENT_PATH="${{ steps.prepare.outputs.full-target-path }}"
+          DEPLOYMENT_TYPE="${{ steps.configure.outputs.deployment-type || inputs.deployment-type }}"
+
+          # Fallback URL generation if not configured
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            case "${{ inputs.deployment-mode }}" in
+              "automatic")
+                DEPLOYMENT_URL="https://minademian.com/"
+                ;;
+              "manual")
+                TAG_NUMBER="${{ inputs.git-tag }}"
+                TAG_NUMBER=${TAG_NUMBER#v}
+                DEPLOYMENT_URL="https://minademian.com/releases/${TAG_NUMBER}/"
+                ;;
+              "sandbox")
+                BRANCH_NAME="${{ steps.configure.outputs.branch-name || inputs.branch-name }}"
+                SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9.-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+                DEPLOYMENT_URL="https://sandbox.minademian.com/${SANITIZED_BRANCH}/"
+                ;;
+            esac
+          fi
+
+          echo "🌐 Deployment URL: $DEPLOYMENT_URL"
+          echo ""
+          echo "📋 Deployment Summary:"
+          echo "  Mode: ${{ inputs.deployment-mode }}"
+          echo "  Type: $DEPLOYMENT_TYPE"
+          echo "  Path: $DEPLOYMENT_PATH"
+          echo "  URL: $DEPLOYMENT_URL"
+
+          # Set outputs
+          echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "deployment-path=$DEPLOYMENT_PATH" >> $GITHUB_OUTPUT
+        fi

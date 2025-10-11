@@ -1,7 +1,7 @@
-import { useRef } from 'react';
+import { motion, useMotionValue } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion, useMotionValue } from 'framer-motion';
+import { useRef } from 'react';
 
 import { MovingImageProps } from '@/types/Articles.type';
 
@@ -13,17 +13,15 @@ export const MovingImage = ({ title, img, link }: MovingImageProps) => {
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   function handleMouse(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
-    let display = imgRef?.current?.style.display;
-    display = 'inline-block';
+    const Y_OFFSET = -10;
     x.set(e.pageX);
-    y.set(-10);
+    y.set(Y_OFFSET);
   }
 
   function handleMouseLeave(
-    event: React.MouseEvent<HTMLAnchorElement, MouseEvent>
+    // eslint-disable-next-line no-unused-vars
+    _event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
   ) {
-    let display = imgRef?.current?.style.display;
-    display = 'none';
     x.set(0);
     y.set(0);
   }

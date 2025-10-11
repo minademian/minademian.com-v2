@@ -1,23 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
-
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
-import NavLink from '../molecules/NavLink.component';
-import MotionLink from '../molecules/MotionLink.component';
-import MobileNavLink from '../molecules/MobileNavLink.component';
 
 import useThemeSwitcher from '../../hooks/useThemeSwitcher';
-
-import Logo from './Logo.component';
 import {
-  TwitterIcon,
   GitHubIcon,
   LinkedInComponent,
-  SunIcon,
   MoonIcon,
+  SunIcon,
+  TwitterIcon,
 } from '../molecules/Icons.component';
+import MobileNavLink from '../molecules/MobileNavLink.component';
+import MotionLink from '../molecules/MotionLink.component';
+import NavLink from '../molecules/NavLink.component';
+
+import Logo from './Logo.component';
+
 
 const NavBar = () => {
   const [mode, setMode] = useThemeSwitcher();
@@ -32,6 +32,9 @@ const NavBar = () => {
         <button
           className="flex-col justify-center items-center hidden lg:flex"
           onClick={handleClick}
+          aria-label="Toggle mobile menu"
+          aria-expanded={isOpen}
+          aria-controls="mobile-menu"
         >
           <span
             className={`bg-dark dark:bg-light block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm -translate-y.0.5 ${
@@ -90,8 +93,11 @@ const NavBar = () => {
          items-center fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
          bg-dark/90 dark:bg-light/75 rounded-lg backdrop-blur-md py-32
          "
+            id="mobile-menu"
+            role="dialog"
+            aria-label="Mobile navigation menu"
           >
-            <nav className="flex items-center flex-col justify-center">
+            <nav className="flex items-center flex-col justify-center" aria-label="Mobile navigation">
               <MobileNavLink
                 href="/"
                 title={'Home'}

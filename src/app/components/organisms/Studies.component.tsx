@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { useMotionValueEvent, motion, useScroll } from 'framer-motion';
+import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
+import { useRef, useState } from 'react';
+
 import ExperienceIcon from './ExperienceIcon.component';
 
 type EntriesProps = {
@@ -18,6 +19,7 @@ const data: EntriesProps[] = [
     type: 'Google Project Management: Professional Certificate',
     time: '2023-present',
     place: 'Coursera',
+    // eslint-disable-next-line max-len
     info: 'Completed the following modules: Foundations of Project Management, Project Initiation: Starting a Successful, Project Agile Project Management.',
   },
   {
@@ -25,6 +27,7 @@ const data: EntriesProps[] = [
     type: 'Bachelor of Science in Software Engineering and Multimedia Systems, Joint Honors',
     time: '2004',
     place: 'Oxford Brookes University',
+    // eslint-disable-next-line max-len
     info: 'Relevant courses included data structures, database design, computer networks, UI, multimedia networks, multimedia systems, and computer science',
   },
 ];
@@ -59,7 +62,7 @@ const Studies = () => {
     offset: ['start end', 'center start'],
   });
 
-  const [hookedYPostion, setHookedYPosition] = useState(0);
+  const [, setHookedYPosition] = useState(0);
 
   useMotionValueEvent(scrollYProgress, 'change', (latest) => {
     setHookedYPosition(latest);

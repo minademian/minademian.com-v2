@@ -1,3 +1,127 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": [
+    "next/core-web-vitals"
+  ],
+  "rules": {
+    // React specific rules
+    "react/jsx-uses-react": "off",
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
+    "react/display-name": "warn",
+    "react/jsx-max-props-per-line": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    // Import/Export rules
+    "no-unused-vars": "warn",
+    "import/no-unused-modules": "off", // Can be performance heavy
+    "import/no-unresolved": "error",
+    "import/order": [
+      "warn",
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index"
+        ],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    // General code quality rules
+    "prefer-const": "error",
+    "no-var": "error",
+    "no-console": "warn",
+    "no-debugger": "error",
+    "no-duplicate-imports": "error",
+    "no-unused-expressions": "error",
+    "no-unreachable": "warn",
+    "no-unused-labels": "warn",
+    "no-undef": "off", // Disabled for TypeScript - TS handles this better
+    "no-redeclare": "error",
+    "no-shadow": "warn",
+    "no-use-before-define": "warn",
+    // Function and variable rules
+    "func-names": "warn",
+    "no-empty-function": "warn",
+    "no-magic-numbers": [
+      "warn",
+      {
+        "ignore": [
+          0,
+          1,
+          -1
+        ]
+      }
+    ],
+    "complexity": [
+      "warn",
+      10
+    ],
+    // Formatting and style rules
+    "semi": [
+      "error",
+      "always"
+    ],
+    "quotes": [
+      "error",
+      "single",
+      {
+        "avoidEscape": true
+      }
+    ],
+    "comma-dangle": [
+      "error",
+      "always-multiline"
+    ],
+    "object-curly-spacing": [
+      "error",
+      "always"
+    ],
+    "array-bracket-spacing": [
+      "error",
+      "never"
+    ],
+    "indent": [
+      "warn",
+      2
+    ],
+    "max-len": [
+      "warn",
+      {
+        "code": 120,
+        "ignoreUrls": true,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true,
+        "ignoreRegExpLiterals": true,
+        "ignorePattern": "^\\s*(className|class|style|d)="
+      }
+    ],
+    "no-trailing-spaces": "error",
+    "no-multiple-empty-lines": [
+      "warn",
+      {
+        "max": 2
+      }
+    ],
+    // ES6+ rules
+    "arrow-spacing": "warn",
+    "no-confusing-arrow": "warn",
+    "prefer-arrow-callback": "warn",
+    "prefer-template": "warn",
+    "template-curly-spacing": "warn",
+    // Next.js specific rules
+    "@next/next/no-img-element": "error",
+    "@next/next/no-html-link-for-pages": "error"
+  },
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  }
 }

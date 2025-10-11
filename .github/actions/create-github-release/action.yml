@@ -1,0 +1,187 @@
+name: 'Create GitHub Release'
+description: 'Creates a GitHub release with release notes and deployment information'
+
+inputs:
+  tag:
+    description: 'Tag name for the release'
+    required: true
+  title:
+    description: 'Release title (if not provided, will use tag name)'
+    required: false
+    default: ''
+  release-type:
+    description: 'Type of release (auto, manual, or skip)'
+    required: false
+    default: 'auto'
+  target-ref:
+    description: 'Target reference for the release'
+    required: false
+    default: ''
+  is-prerelease:
+    description: 'Mark as prerelease'
+    required: false
+    default: 'false'
+  deploy-target:
+    description: 'Deployment target for manual releases'
+    required: false
+    default: ''
+  deployment-url:
+    description: 'URL where the release was deployed'
+    required: false
+    default: ''
+  github-token:
+    description: 'GitHub token for API access'
+    required: true
+
+outputs:
+  release-created:
+    description: 'Whether a release was created'
+    value: ${{ steps.create-release.outputs.release-created }}
+  release-url:
+    description: 'URL of the created release'
+    value: ${{ steps.create-release.outputs.release-url }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Create GitHub Release
+      id: create-release
+      shell: bash
+      run: |
+        set -e
+
+        TAG="${{ inputs.tag }}"
+        TITLE="${{ inputs.title }}"
+        RELEASE_TYPE="${{ inputs.release-type }}"
+        TARGET_REF="${{ inputs.target-ref }}"
+        IS_PRERELEASE="${{ inputs.is-prerelease }}"
+        DEPLOY_TARGET="${{ inputs.deploy-target }}"
+
+        echo "🏷️ Creating release for tag: $TAG"
+        echo "📝 Release type: $RELEASE_TYPE"
+
+        # Defensive check: Verify tag exists before proceeding
+        if ! git rev-parse --verify "refs/tags/$TAG" >/dev/null 2>&1; then
+          echo "❌ Error: Tag '$TAG' does not exist in the repository"
+          echo "🔍 Available tags:"
+          git tag --list | head -10 || echo "No tags found"
+          echo "release-created=false" >> $GITHUB_OUTPUT
+          echo "release-url=" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+        echo "✅ Tag '$TAG' verified to exist"
+
+        # Skip if release type is 'skip'
+        if [ "$RELEASE_TYPE" = "skip" ]; then
+          echo "⏭️ Skipping release creation"
+          echo "release-created=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Set title if not provided
+        if [ -z "$TITLE" ]; then
+          TITLE="Release $TAG"
+        fi
+
+        # Set target if not provided
+        if [ -z "$TARGET_REF" ]; then
+          TARGET_REF="$TAG"
+        fi
+
+        # Get commit information
+        TAG_COMMIT=$(git rev-list -n 1 "$TAG" 2>/dev/null || echo "")
+        if [ -n "$TAG_COMMIT" ]; then
+          COMMIT_MESSAGE=$(git log --format=%s -n 1 "$TAG_COMMIT")
+        else
+          COMMIT_MESSAGE="Release $TAG"
+        fi
+
+        # Generate release notes based on type
+        if [ "$RELEASE_TYPE" = "manual" ]; then
+          RELEASE_NOTES="## Manual Release Deployment
+
+        🚀 **Manual deployment** of existing tag \`$TAG\`
+
+        **Commit**: $TAG_COMMIT
+        **Message**: $COMMIT_MESSAGE
+        **Deploy Target**: \`$DEPLOY_TARGET\`"
+
+          # Add deployment URL if provided
+          if [ -n "${{ inputs.deployment-url }}" ]; then
+            RELEASE_NOTES="$RELEASE_NOTES
+
+        **🌐 Deployment URL**: ${{ inputs.deployment-url }}"
+          fi
+
+          RELEASE_NOTES="$RELEASE_NOTES
+
+        This release was created during manual deployment to ensure proper tracking and deployment history."
+
+        else
+          # Auto release notes - get commits since last release
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "$TAG"^ 2>/dev/null || echo "")
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "📊 Generating changelog from $PREVIOUS_TAG to $TAG"
+            # Write to temp file to avoid command substitution issues with special characters
+            git log --pretty=format:"- %s" "$PREVIOUS_TAG".."$TAG" > /tmp/changelog.txt 2>/dev/null || echo "- $COMMIT_MESSAGE" > /tmp/changelog.txt
+            CHANGELOG="$(cat /tmp/changelog.txt)"
+          else
+            CHANGELOG="- $COMMIT_MESSAGE"
+          fi
+
+          # Build release notes using printf to properly handle special characters
+          RELEASE_NOTES="## What's Changed
+
+        $CHANGELOG"
+
+          # Add deployment information for auto releases
+          if [ -n "${{ inputs.deployment-url }}" ]; then
+            RELEASE_NOTES="$RELEASE_NOTES
+
+        ## Deployment Info
+
+        🌐 **Production URL**: ${{ inputs.deployment-url }}
+          fi
+
+          RELEASE_NOTES="$RELEASE_NOTES
+
+        **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${TAG}"
+        fi
+
+        # Create the release
+        echo "🚀 Creating GitHub release..."
+
+        PRERELEASE_FLAG=""
+        if [ "$IS_PRERELEASE" = "true" ]; then
+          PRERELEASE_FLAG="--prerelease"
+        fi
+
+        RELEASE_URL=""
+        if gh release create "$TAG" \
+          --title "$TITLE" \
+          --notes "$RELEASE_NOTES" \
+          --target "$TARGET_REF" \
+          $PRERELEASE_FLAG; then
+
+          echo "✅ Successfully created release for $TAG"
+          RELEASE_URL=$(gh release view "$TAG" --json url --jq '.url')
+          echo "release-created=true" >> $GITHUB_OUTPUT
+          echo "release-url=$RELEASE_URL" >> $GITHUB_OUTPUT
+        else
+          echo "⚠️ Failed to create release (may already exist)"
+          # Check if release exists
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "📋 Release already exists for $TAG"
+            RELEASE_URL=$(gh release view "$TAG" --json url --jq '.url')
+            echo "release-created=false" >> $GITHUB_OUTPUT
+            echo "release-url=$RELEASE_URL" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Release creation failed for unknown reason"
+            echo "release-created=false" >> $GITHUB_OUTPUT
+            echo "release-url=" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        fi
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}

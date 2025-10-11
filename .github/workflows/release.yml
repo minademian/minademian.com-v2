@@ -1,0 +1,360 @@
+name: Release and Deploy
+
+# Permissions needed for tag creation and repository access
+permissions:
+  contents: write  # Needed to create tags and push to repository
+  pull-requests: write  # Needed to comment on PRs
+  issues: write  # Needed to comment on issues
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deployment_type:
+        description: "Type of deployment"
+        required: true
+        type: choice
+        default: "manual_tag_deploy"
+        options:
+          - "manual_tag_deploy"
+          - "automatic_deploy"
+      tag_to_deploy:
+        description: "Tag to deploy (e.g., v2.2.3, v2.1.0)"
+        required: false
+        type: string
+        default: "v2.2.3"
+      create_github_release:
+        description: "Create GitHub release for this tag? (for manual deployments)"
+        required: false
+        type: choice
+        default: "false"
+        options:
+          - "false"
+          - "true"
+      deploy_target:
+        description: "Deployment target"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - "staging"
+          - "latest"
+      release_type:
+        description: "Release type (only for new releases)"
+        required: false
+        default: "none"
+        type: choice
+        options:
+          - none
+          - patch
+          - minor
+          - major
+      enable_debug_output:
+        description: "Enable detailed deployment debug information?"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+jobs:
+  create-git-tag:
+    name: Create Git Tag
+    runs-on: ubuntu-latest
+    outputs:
+      deployment-ref: ${{ steps.prepare.outputs.deployment-ref }}
+      deployment-tag: ${{ steps.prepare.outputs.deployment-tag }}
+      should-create-release: ${{ steps.prepare.outputs.should-create-release }}
+      is-manual-deployment: ${{ steps.prepare.outputs.is-manual-deployment }}
+      release-type: ${{ steps.prepare.outputs.release-type }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare Git tag
+        id: prepare
+        uses: ./.github/actions/prepare-git-tag
+        with:
+          event-name: ${{ github.event_name }}
+          deployment-type: ${{ github.event.inputs.deployment_type || 'auto' }}
+          tag-to-deploy: ${{ github.event.inputs.tag_to_deploy || '' }}
+          release-type: ${{ github.event.inputs.release_type || 'none' }}
+          pr-title: ${{ github.event.pull_request.title || '' }}
+          pr-body: ${{ github.event.pull_request.body || '' }}
+          pr-merged: ${{ github.event.pull_request.merged || 'false' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  lint:
+    name: Code Linting
+    runs-on: ubuntu-latest
+    needs: [create-git-tag]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Run linting
+        run: pnpm run lint
+
+  typecheck:
+    name: Type Checking
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Run type checking
+        uses: ./.github/actions/typecheck
+
+  check-commit-type:
+    name: Check Commit Type
+    runs-on: ubuntu-latest
+    needs: [typecheck]
+    outputs:
+      skip-e2e: ${{ steps.check.outputs.skip-e2e }}
+      skip-bdd: ${{ steps.check.outputs.skip-bdd }}
+      commit-type: ${{ steps.check.outputs.commit-type }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
+          fetch-depth: 10  # Get recent commits to check
+
+      - name: Check for CI/Chore commits
+        id: check
+        shell: bash
+        run: |
+          SKIP_E2E="false"
+          SKIP_BDD="false"
+          COMMIT_TYPE="feature"
+
+          echo "🔍 Checking recent commit messages for CI/Chore/Docs patterns..."
+
+          # Check the last 3 commits for ci, chore, or docs patterns (conventional commits)
+          # Matches: ci:, chore:, docs:, <any-type>(ci):
+          if git log --oneline -n 3 | grep -qE "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):)"; then
+            SKIP_E2E="true"
+            SKIP_BDD="true"
+            COMMIT_TYPE="ci-chore-docs"
+            echo "🔧 CI/Chore/Docs commit detected - skipping E2E and BDD tests"
+            echo ""
+            echo "Matching commits found:"
+            git log --oneline -n 3 | grep -E "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):)" || true
+            echo ""
+            echo "All recent commits:"
+            git log --oneline -n 3
+            echo ""
+            echo "E2E and BDD tests will be skipped for CI/CD/documentation related changes."
+          else
+            echo "✅ Feature commit detected - E2E and BDD tests will run"
+            echo "Recent commits:"
+            git log --oneline -n 3
+          fi
+
+          echo "skip-e2e=$SKIP_E2E" >> $GITHUB_OUTPUT
+          echo "skip-bdd=$SKIP_BDD" >> $GITHUB_OUTPUT
+          echo "commit-type=$COMMIT_TYPE" >> $GITHUB_OUTPUT
+          echo "Final E2E skip setting: $SKIP_E2E"
+          echo "Final BDD skip setting: $SKIP_BDD"
+
+  bdd-tests:
+    name: BDD Tests
+    runs-on: ubuntu-latest
+    needs: [check-commit-type]
+    if: needs.check-commit-type.outputs.skip-bdd != 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Run BDD smoke tests
+        uses: ./.github/actions/bdd-tests
+        with:
+          test-type: 'smoke'
+
+  e2e-tests:
+    name: E2E Tests
+    uses: ./.github/workflows/e2e.yml
+    needs: [check-commit-type, bdd-tests]
+    if: needs.check-commit-type.outputs.skip-e2e != 'true'
+    with:
+      environment: 'production'
+      fail_on_error: true  # Blocking: fail the pipeline if e2e tests fail
+      skip-e2e: false
+
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, bdd-tests, e2e-tests]  # Wait for lint, typecheck, BDD tests AND e2e tests
+    if: always() && needs.lint.result == 'success' && needs.typecheck.result == 'success' && (needs.bdd-tests.result == 'success' || needs.bdd-tests.result == 'skipped') && (needs.e2e-tests.result == 'success' || needs.e2e-tests.result == 'skipped')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Build and verify
+        uses: ./.github/actions/build-project
+        with:
+          deployment-type: 'production'
+
+      - name: Verify build output exists
+        run: |
+          echo "Checking for build output..."
+          if [ -d "out" ]; then
+            echo "✅ out/ directory found"
+            echo "Contents:"
+            ls -la out/ | head -5
+            echo "Total files: $(find out -type f | wc -l)"
+          else
+            echo "❌ out/ directory not found!"
+            echo "Available directories:"
+            ls -la
+            exit 1
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-files
+          path: out/
+          retention-days: 1
+
+  check-debug-flag:
+    name: Check Debug Flag
+    runs-on: ubuntu-latest
+    needs: [create-git-tag]
+    if: always() && (needs.create-git-tag.result == 'success' || needs.create-git-tag.result == 'skipped')
+    outputs:
+      debug-enabled: ${{ steps.check.outputs.debug-enabled }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
+          fetch-depth: 10  # Get recent commits to check
+
+      - name: Check for debug flag
+        id: check
+        shell: bash
+        run: |
+          DEBUG_ENABLED="false"
+
+          # Check manual workflow input first (highest priority)
+          if [ "${{ github.event.inputs.enable_debug_output }}" = "true" ]; then
+            DEBUG_ENABLED="true"
+            echo "🐛 Debug enabled via manual workflow input"
+          # For automatic deployments (PR merge), check recent commit messages
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "🔍 Checking recent commit messages for debug flag..."
+
+            # Check the last 5 commits for the debug flag
+            if git log --oneline -n 5 --grep="\[DEBUG_DEPLOYMENT_INFORMATION\]" | grep -q "DEBUG_DEPLOYMENT_INFORMATION"; then
+              DEBUG_ENABLED="true"
+              echo "🐛 Debug enabled via commit message containing [DEBUG_DEPLOYMENT_INFORMATION]"
+              echo "Found in commit:"
+              git log --oneline -n 5 --grep="\[DEBUG_DEPLOYMENT_INFORMATION\]" | head -1
+            else
+              echo "ℹ️  No debug flag found in recent commit messages"
+            fi
+          else
+            echo "ℹ️  Debug output disabled by default"
+          fi
+
+          echo "debug-enabled=$DEBUG_ENABLED" >> $GITHUB_OUTPUT
+          echo "Final debug setting: $DEBUG_ENABLED"
+
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: [build, create-git-tag, check-debug-flag]
+    if: always() && needs.build.result == 'success' && (needs.create-git-tag.result == 'success' || needs.create-git-tag.result == 'skipped') && (needs.check-debug-flag.result == 'success' || needs.check-debug-flag.result == 'skipped')
+    outputs:
+      deployment-url: ${{ steps.deploy-website.outputs.deployment-url }}
+      deployment-path: ${{ steps.deploy-website.outputs.deployment-path }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
+
+      - name: Deploy website
+        id: deploy-website
+        uses: ./.github/actions/deploy-to-remote-server
+        with:
+          deployment-mode: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && 'manual' || 'automatic' }}
+          event-name: ${{ github.event_name }}
+          ref: ${{ github.ref }}
+          ref-name: ${{ github.ref_name }}
+          git-tag: ${{ needs.create-git-tag.outputs.deployment-tag }}
+          build-artifact-name: 'build-files'
+          ssh-host: ${{ secrets.SFTP_HOST }}
+          ssh-username: ${{ secrets.SFTP_USERNAME }}
+          ssh-password: ${{ secrets.SFTP_PASSWORD }}
+          base-path: ${{ secrets.DEPLOY_BASE_PATH }}
+          # Debug information for enhanced logging
+          deployment-type-input: ${{ github.event.inputs.deployment_type }}
+          tag-to-deploy: ${{ github.event.inputs.tag_to_deploy }}
+          deploy-target: ${{ github.event.inputs.deploy_target }}
+          create-github-release: ${{ github.event.inputs.create_github_release }}
+          create-tag-result: ${{ needs.create-git-tag.result }}
+          is-manual-release: ${{ needs.create-git-tag.outputs.is-manual-deployment }}
+          should-create-release: ${{ needs.create-git-tag.outputs.should-create-release }}
+          debug-enabled: ${{ needs.check-debug-flag.outputs.debug-enabled }}
+
+  publish-release:
+    name: Publish GitHub Release
+    runs-on: ubuntu-latest
+    needs: [create-git-tag, deploy]
+    if: always() && needs.create-git-tag.outputs.should-create-release == 'true' && needs.deploy.result == 'success' && (github.event.inputs.create_github_release == 'true' || github.event.inputs.create_github_release == '' || github.event_name == 'pull_request')
+    outputs:
+      release-url: ${{ steps.create-github-release.outputs.release-url }}
+      release-created: ${{ steps.create-github-release.outputs.release-created }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.create-git-tag.outputs.deployment-tag }}
+          fetch-depth: 0
+
+      - name: Get commit hash for release
+        id: get-commit
+        run: |
+          COMMIT_HASH=$(git rev-parse HEAD)
+          echo "commit-hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+          echo "Using commit hash: $COMMIT_HASH"
+
+      - name: Create GitHub Release
+        id: create-github-release
+        uses: ./.github/actions/create-github-release
+        with:
+          tag: ${{ needs.create-git-tag.outputs.deployment-tag }}
+          title: ${{ needs.create-git-tag.outputs.is-manual-deployment == 'true' && format('Manual Release {0}', needs.create-git-tag.outputs.deployment-tag) || format('Release {0}', needs.create-git-tag.outputs.deployment-tag) }}
+          release-type: ${{ needs.create-git-tag.outputs.release-type }}
+          target-ref: ${{ steps.get-commit.outputs.commit-hash }}
+          deploy-target: ${{ github.event.inputs.deploy_target || 'production' }}
+          deployment-url: ${{ needs.deploy.outputs.deployment-url }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
