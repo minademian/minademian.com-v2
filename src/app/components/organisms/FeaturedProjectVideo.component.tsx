@@ -5,6 +5,8 @@ import { useRef, useState } from 'react';
 
 import { GitHubIcon } from '@/molecules/Icons.component';
 
+import { TechStack } from './TechStack.component';
+
 type ProjectVideoProps = {
   type: string;
   title: string;
@@ -41,23 +43,25 @@ export const FeaturedProjectVideo = ({
     <article className="w-full flex items-center justify-between 2xs:flex-col relative rounded-br-2xl rounded-3xl border border-solid border-dark bg-light dark:bg-dark dark:border-light shadow-2xl p-12 2xs:p-3">
       <div className="absolute top-0 -right-3 -z-10 w-[101%] h-[103%] rounded-[2rem] bg-dark dark:bg-light" />
 
-      <div className="w-1/2 cursor-pointer overflow-hidden rounded-lg relative">
+      <div className="relative aspect-[9/19.5] max-w-[360px] mx-auto rounded-2xl overflow-hidden">
         <video
           ref={videoRef}
           preload="metadata"
-          className="w-full h-auto rounded-lg"
-          poster="/placeholder.jpg" // optional placeholder image
+          className="w-full h-full object-contain block rounded-2xl"
+          poster="/placeholder.jpg"
+          muted
+          loop
           onClick={handlePlay}
         >
           <source src={videoSrc} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 
-        {/* Optional play button overlay */}
         {!isPlaying && (
           <button
             onClick={handlePlay}
-            className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-3xl font-bold"
+            className="absolute inset-0 flex items-center justify-center text-white bg-black/30 text-[clamp(2rem,5vw,3rem)] rounded-2xl"
+            aria-label="Play video"
           >
             ▶
           </button>
@@ -82,21 +86,16 @@ export const FeaturedProjectVideo = ({
             </Link>
           )}
 
-          {link == '#' ? (
+          {link != '#' && (
             <Link
               href=""
               className="ml-4 rounded-lg bg-dark text-light p-2 px-6 text-lg font-semibold dark:bg-light dark:text-dark"
             >
-              Coming Soon
-            </Link>
-          ) : (
-            <Link
-              href={link}
-              className="ml-4 rounded-lg bg-dark text-light p-2 px-6 text-lg font-semibold dark:bg-light dark:text-dark"
-            >
-              View Project
+              View on GitHub
             </Link>
           )}
+
+          <TechStack techs={['React', 'Styled Components', 'TypeScript', 'MongoDB', 'HashiCorp Nomad', 'Docker', 'REST APIs', 'Microservices', 'Node', 'Express', 'Google Maps API']} />
         </div>
       </div>
     </article>

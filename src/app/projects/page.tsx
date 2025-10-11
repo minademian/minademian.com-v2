@@ -1,11 +1,11 @@
 
 import { SectionComponent } from '@/atoms/Section.component';
 import AnimatedText from '@/organisms/AnimatedText.component';
-import { Project } from '@/organisms/Projects.component';
 import TransitionEffect from '@/organisms/TransitionEffect.component';
-import newssifter from '@/public/images/projects/newssifter.png';
 
 import { FeaturedProjectVideo } from '../components/organisms/FeaturedProjectVideo.component';
+
+const DRVideoUrl = 'https://d1n1dt082182bs.cloudfront.net/DR-showcase-2025.mp4';
 
 export const metadata = {
   title: 'minademian.com | Projects',
@@ -25,28 +25,12 @@ export default function Projects() {
             text="Projects"
             className="mb-16 2xs:!text-4xl 2xs:p-0 2xs:mt-4 2xs:mb-8"
           />
-          <div className="grid grid-cols-12 gap-24 2xs:grid-cols-6 2xs:gap-20">
-            <div className="col-span-12 2xs:col-span-6 2xs:mr-8">
-              <Project
-                title="News Sifter"
-                summary="News Sifter will be a chatbot that will provide context for news articles.
-                The user sends a news article and the bot checks it against a publicly available spreadsheet.
-                Context returned is not provided as-is, a disclaimer will also be added.
-                Built with React, TypeScript, Express, and Tailwind."
-                link="#"
-                github="https://github.com/minademian/newssifter"
-                type="Featured Project"
-                img={newssifter}
-              />
-            </div>
-          </div>
           <div className="col-span-6 2xs:col-span-6 2xs:mr-8">
-            {'   '}
             <FeaturedProjectVideo
               type="Featured Project"
-              videoSrc={''}
+              videoSrc={DRVideoUrl}
               title="Driver Recommendations"
-              link=""
+              link="#"
               summary="A full-stack solution to provide recommendations for predicted trips to Cabonline taxi drivers,
               powered by a machine learning model to predict supply and demand."
             />
