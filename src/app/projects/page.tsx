@@ -5,6 +5,8 @@ import { Project } from '@/organisms/Projects.component';
 import TransitionEffect from '@/organisms/TransitionEffect.component';
 import newssifter from '@/public/images/projects/newssifter.png';
 
+import { FeaturedProjectVideo } from '../components/organisms/FeaturedProjectVideo.component';
+
 export const metadata = {
   title: 'minademian.com | Projects',
   description:
@@ -39,16 +41,14 @@ export default function Projects() {
             </div>
           </div>
           <div className="col-span-6 2xs:col-span-6 2xs:mr-8">
-            {' '}
-            <Project
+            {'   '}
+            <FeaturedProjectVideo
+              type="Featured Project"
+              videoSrc={''}
               title="Driver Recommendations"
-              // eslint-disable-next-line max-len
+              link=""
               summary="A full-stack solution to provide recommendations for predicted trips to Cabonline taxi drivers,
               powered by a machine learning model to predict supply and demand."
-              link="https://projects.minademian.com/scania-test-case"
-              type="Project"
-              img={newssifter}
-              github="https://github.com/minademian/scania-testcase"
             />
           </div>
         </SectionComponent>

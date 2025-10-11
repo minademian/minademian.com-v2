@@ -7,13 +7,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const getBasePath = () => {
-  // For sandbox deployments, use sanitized branch name as base path since subdomain serves from /branch-name/
   if (process.env.DEPLOYMENT_TYPE === 'sandbox' && process.env.BRANCH_NAME) {
-    // Sanitize branch name to match server directory structure
     const sanitizedBranch = process.env.BRANCH_NAME
-      .replace(/[^a-zA-Z0-9.-]/g, '-')  // Replace invalid chars with dash
-      .replace(/--+/g, '-')             // Replace multiple dashes with single dash
-      .replace(/^-|-$/g, '');           // Remove leading/trailing dashes
+      .replace(/[^a-zA-Z0-9.-]/g, '-')
+      .replace(/--+/g, '-')
+      .replace(/^-|-$/g, '');
     return `/${sanitizedBranch}`;
   }
 
@@ -27,13 +25,12 @@ const getBasePath = () => {
 const getAssetPrefix = () => {
   if (process.env.DEPLOYMENT_TYPE === 'sandbox' && process.env.BRANCH_NAME) {
     const sanitizedBranch = process.env.BRANCH_NAME
-      .replace(/[^a-zA-Z0-9.-]/g, '-')  // Replace invalid chars with dash
-      .replace(/--+/g, '-')             // Replace multiple dashes with single dash
-      .replace(/^-|-$/g, '');           // Remove leading/trailing dashes
+      .replace(/[^a-zA-Z0-9.-]/g, '-')
+      .replace(/--+/g, '-')
+      .replace(/^-|-$/g, '');
     return `https://sandbox.minademian.com/${sanitizedBranch}`;
   }
 
-  // For other deployments, use the same as basePath
   return getBasePath();
 };
 
@@ -48,5 +45,19 @@ const nextConfig = {
   trailingSlash: true,
   basePath: getBasePath(),
   assetPrefix: getAssetPrefix(),
+
+  // 👇 Add this section
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.(mp4|webm|ogg)$/i,
+      type: 'asset/resource',
+      generator: {
+        filename: 'videos/[name].[hash][ext]',
+      },
+    });
+
+    return config;
+  },
 };
+
 export default nextConfig;
