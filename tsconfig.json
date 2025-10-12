@@ -1,3 +1,10 @@
 {
-  "extends": "./tsconfig.local.json"
+  "extends": "./tsconfig.local.json",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  }
 }
