@@ -52,3 +52,6 @@ public/videos/
 
 infra/*
 !infra/README.md
+
+docs/*
+!docs/INVESTIGATION.md
