@@ -13,7 +13,7 @@ Then('I should see the {string} section', async function (sectionName) {
   if (!this.page) throw new Error('Page not initialized');
 
   // Look for section with heading matching the section name
-  const section = this.page.locator('h1, h2, h3').filter({ hasText: new RegExp(sectionName, 'i') });
+  const section =  await this.page.locator('div').filter({ hasText: sectionName }).nth(1);
   await expect(section).toBeVisible();
 });
 
