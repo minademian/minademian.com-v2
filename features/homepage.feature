@@ -8,7 +8,7 @@ Feature: Portfolio Homepage
     Given I am on the homepage
 
   Scenario: Homepage loads successfully
-    Then I should see the main heading "Products, Not Code" or similar
+    Then I should see the main heading "Turning Ideas Into Scaleable Products" or similar
     And I should see the developer profile image
     And I should see the navigation menu
 

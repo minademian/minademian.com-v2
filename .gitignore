@@ -47,3 +47,8 @@ node_modules/
 # Cucumber BDD
 /screenshots/
 cucumber-report.json
+
+public/videos/
+
+infra/*
+!infra/README.md
