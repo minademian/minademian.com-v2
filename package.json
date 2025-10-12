@@ -18,10 +18,11 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "test:cucumber": "NODE_OPTIONS='--loader=ts-node/esm --experimental-specifier-resolution=node' TS_NODE_PROJECT=features/tsconfig.json cucumber-js",
-    "test:cucumber:watch": "chokidar 'src/**/*.{ts,tsx,js,jsx}' 'features/**/*.{feature,js,ts}' -c 'pnpm test:cucumber' --initial",
-    "test:cucumber:smoke": "NODE_OPTIONS='--loader=ts-node/esm --experimental-specifier-resolution=node' TS_NODE_PROJECT=features/tsconfig.json cucumber-js --tags @smoke",
-    "test:cucumber:debug": "NODE_OPTIONS='--loader=ts-node/esm --experimental-specifier-resolution=node' TS_NODE_PROJECT=features/tsconfig.json cucumber-js --format @cucumber/pretty-formatter",
+    "test:cucumber": "volta run node node_modules/@cucumber/cucumber/bin/cucumber-js",
+    "test:cucumber:watch": "volta run chokidar \"src/**/*.{ts,tsx,js,jsx}\" \"features/**/*.{feature,js,ts}\" -c \"volta run node node_modules/@cucumber/cucumber/bin/cucumber-js\" --initial",
+    "test:cucumber:smoke": "volta run node node_modules/@cucumber/cucumber/bin/cucumber-js --tags @smoke",
+    "test:cucumber:smoke:watch": "volta run chokidar \"features/**/*.{feature,js}\" \"features/step-definitions/*.js\" -c \"volta run node node_modules/@cucumber/cucumber/bin/cucumber-js --tags @smoke\" --initial",
+    "test:cucumber:debug": "volta run node node_modules/@cucumber/cucumber/bin/cucumber-js --format @cucumber/pretty-formatter",
     "test:bdd": "pnpm test:cucumber"
   },
   "dependencies": {
