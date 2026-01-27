@@ -115,29 +115,30 @@ jobs:
           MATCHED_PATTERN="none"
 
           # Check if commit matches ci-only patterns (should skip both BDD and E2E)
-          if echo "$COMMIT_MSG" | grep -qE '^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\)):'; then
+          # Pattern matches: ci:, chore:, docs:, or <type>(ci): with optional git hash prefix
+          if echo "$COMMIT_MSG" | grep -qE '^([a-f0-9]+ )?((ci|chore|docs):|[a-z]+\(ci\):)'; then
             SHOULD_SKIP_BDD="true"
             SHOULD_SKIP_E2E="true"
 
-            if echo "$COMMIT_MSG" | grep -qE '^[a-f0-9]+ ci:'; then
+            if echo "$COMMIT_MSG" | grep -qE '(^|^[a-f0-9]+ )ci:'; then
               COMMIT_TYPE="ci"
               MATCHED_PATTERN="ci:"
-            elif echo "$COMMIT_MSG" | grep -qE '^[a-f0-9]+ chore:'; then
+            elif echo "$COMMIT_MSG" | grep -qE '(^|^[a-f0-9]+ )chore:'; then
               COMMIT_TYPE="chore"
               MATCHED_PATTERN="chore:"
-            elif echo "$COMMIT_MSG" | grep -qE '^[a-f0-9]+ docs:'; then
+            elif echo "$COMMIT_MSG" | grep -qE '(^|^[a-f0-9]+ )docs:'; then
               COMMIT_TYPE="docs"
               MATCHED_PATTERN="docs:"
-            elif echo "$COMMIT_MSG" | grep -qE '^[a-f0-9]+ [a-z]+\(ci\):'; then
-              COMMIT_TYPE=$(echo "$COMMIT_MSG" | grep -oE '^[a-f0-9]+ [a-z]+\(ci\):' | grep -oE '[a-z]+\(ci\)' | sed 's/(ci)//')
+            elif echo "$COMMIT_MSG" | grep -qE '(^|^[a-f0-9]+ )[a-z]+\(ci\):'; then
+              COMMIT_TYPE=$(echo "$COMMIT_MSG" | grep -oE '[a-z]+\(ci\)' | head -1 | sed 's/(ci)//')
               MATCHED_PATTERN="$COMMIT_TYPE(ci):"
             fi
 
-            echo "✅ Commit matches CI-only pattern: $MATCHED_PATTERN"
-            echo "   → BDD tests would be SKIPPED (commit-based)"
-            echo "   → E2E tests would be SKIPPED (commit-based)"
+            echo "Commit matches CI-only pattern: $MATCHED_PATTERN"
+            echo "   -> BDD tests would be SKIPPED (commit-based)"
+            echo "   -> E2E tests would be SKIPPED (commit-based)"
           else
-            COMMIT_TYPE=$(echo "$COMMIT_MSG" | grep -oE '^[a-f0-9]+ [a-z]+' | awk '{print $2}' || echo "unknown")
+            COMMIT_TYPE=$(echo "$COMMIT_MSG" | grep -oE '^([a-f0-9]+ )?[a-z]+' | awk '{print $NF}' || echo "unknown")
             echo "📋 Commit type: $COMMIT_TYPE"
             echo "   → BDD tests would be TRIGGERED (commit requires testing)"
             echo "   → E2E tests would be TRIGGERED (commit requires testing)"
@@ -365,12 +366,12 @@ jobs:
           echo "🧪 SIMULATING: E2E Tests"
           echo "════════════════════════════════════════════════════════════════"
           echo ""
-          echo "� E2E Decision Analysis:"
-          echo "  • Commit Type: ${{ needs.check-commit-type.outputs.commit-type }}"
-          echo "  • Matched Pattern: ${{ needs.check-commit-type.outputs.matched-pattern }}"
-          echo "  • Should Skip: ${{ needs.check-commit-type.outputs.should-skip-e2e }}"
+          echo "E2E Decision Analysis:"
+          echo "  - Commit Type: ${{ needs.check-commit-type.outputs.commit-type }}"
+          echo "  - Matched Pattern: ${{ needs.check-commit-type.outputs.matched-pattern }}"
+          echo "  - Should Skip: ${{ needs.check-commit-type.outputs.should-skip-e2e }}"
           echo ""
-          echo "�📋 In actual workflow, this would:"
+          echo "In actual workflow, this would:"
           echo "  • Checkout code"
           echo "  • Install dependencies (pnpm install)"
           echo "  • Install Playwright browsers"
@@ -459,7 +460,7 @@ jobs:
       - name: Simulate Deployment
         run: |
           echo "════════════════════════════════════════════════════════════════"
-          echo "🚀 SIMULATING: Deployment to Vercel"
+          echo "SIMULATING: Deployment via SFTP"
           echo "════════════════════════════════════════════════════════════════"
           echo ""
 
@@ -474,37 +475,30 @@ jobs:
           echo ""
 
           if [ "$DEPLOY_ENV" = "production" ]; then
-            echo "🌐 PRODUCTION DEPLOYMENT"
+            echo "PRODUCTION DEPLOYMENT"
             echo ""
-            echo "📋 In actual workflow, this would:"
-            echo "  • Download build artifacts"
-            echo "  • Deploy to Vercel production"
-            echo "  • Assign production domain"
-            echo "  • Wait for deployment to complete"
-            echo "  • Run production smoke tests"
-            echo "  • Capture deployment URL"
+            echo "In actual workflow, this would:"
+            echo "  - Download build artifacts"
+            echo "  - Deploy via SFTP to production server"
+            echo "  - Update latest symlink"
+            echo "  - Verify deployment"
             echo ""
-            echo "✅ Deployment would occur to PRODUCTION"
+            echo "Deployment would occur to PRODUCTION"
             echo ""
-            echo "📊 Expected deployment URL:"
-            echo "  • https://minademian.com (simulated)"
-            echo "  • Production environment"
+            echo "Expected deployment URL:"
+            echo "  - https://minademian.com"
           else
-            echo "🧪 STAGING DEPLOYMENT"
+            echo "STAGING DEPLOYMENT"
             echo ""
-            echo "📋 In actual workflow, this would:"
-            echo "  • Download build artifacts"
-            echo "  • Deploy to Vercel staging/preview"
-            echo "  • Assign preview domain"
-            echo "  • Wait for deployment to complete"
-            echo "  • Run staging smoke tests"
-            echo "  • Capture deployment URL"
+            echo "In actual workflow, this would:"
+            echo "  - Download build artifacts"
+            echo "  - Deploy via SFTP to staging server"
+            echo "  - Verify deployment"
             echo ""
-            echo "✅ Deployment would occur to STAGING"
+            echo "Deployment would occur to STAGING"
             echo ""
-            echo "📊 Expected deployment URL:"
-            echo "  • https://staging-minademian.vercel.app (simulated)"
-            echo "  • Staging/preview environment"
+            echo "Expected deployment URL:"
+            echo "  - https://staging.minademian.com"
           fi
 
           echo ""
@@ -600,9 +594,9 @@ jobs:
             echo "  6. ✅ E2E Tests"
           fi
 
-          echo "  7. ✅ Production Build"
-          echo "  8. ✅ Vercel Deployment"
-          echo "  9. ✅ GitHub Release Creation"
+          echo "  7. Production Build"
+          echo "  8. SFTP Deployment"
+          echo "  9. GitHub Release Creation"
           echo ""
           echo "📋 Configuration Used:"
           echo "  • Deployment Type: ${{ github.event.inputs.deployment_type }}"

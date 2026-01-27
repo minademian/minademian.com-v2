@@ -206,15 +206,15 @@ runs:
         echo "🚀 Starting deployment preparation..."
         echo ""
         echo "📋 Deployment Configuration:"
-        echo "   🎯 Mode: ${{ inputs.deployment-mode }}"
+        echo "   Mode: ${{ inputs.deployment-mode }}"
 
         # Use configured values if available, otherwise use inputs
         DEPLOYMENT_TYPE="${{ steps.configure.outputs.deployment-type || inputs.deployment-type }}"
         TARGET_PATH="${{ steps.configure.outputs.target-path || inputs.target-path }}"
         BRANCH_NAME="${{ steps.configure.outputs.branch-name || inputs.branch-name }}"
 
-        echo "   � Type: $DEPLOYMENT_TYPE"
-        echo "   �🌐 Host: ${{ inputs.ssh-host }}"
+        echo "   Type: $DEPLOYMENT_TYPE"
+        echo "   Host: ${{ inputs.ssh-host }}"
         echo "   👤 User: ${{ inputs.ssh-username }}"
         echo "   📁 Base path: ${{ inputs.base-path }}"
 
