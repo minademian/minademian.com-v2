@@ -147,15 +147,15 @@ jobs:
           echo "🔍 Checking recent commit messages for CI/Chore/Docs patterns..."
 
           # Check the last 3 commits for ci, chore, or docs patterns (conventional commits)
-          # Matches: ci:, chore:, docs:, <any-type>(ci):
-          if git log --oneline -n 3 | grep -qE "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):)"; then
+          # Matches: ci:, chore:, docs:, <any-type>(ci):, fix(docs):
+          if git log --oneline -n 3 | grep -qE "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):|fix\(docs\):)"; then
             SKIP_E2E="true"
             SKIP_BDD="true"
             COMMIT_TYPE="ci-chore-docs"
             echo "🔧 CI/Chore/Docs commit detected - skipping E2E and BDD tests"
             echo ""
             echo "Matching commits found:"
-            git log --oneline -n 3 | grep -E "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):)" || true
+            git log --oneline -n 3 | grep -E "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):|fix\(docs\):)" || true
             echo ""
             echo "All recent commits:"
             git log --oneline -n 3

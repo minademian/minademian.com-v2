@@ -39,19 +39,19 @@ runs:
         case "${{ inputs.test-type }}" in
           smoke)
             echo "Running smoke tests..."
-            pnpm test:cucumber:smoke
+            pnpm run test:cucumber:smoke
             ;;
           all)
             echo "Running all tests..."
-            pnpm test:cucumber
+            pnpm run test:cucumber
             ;;
           debug)
             echo "Running tests in debug mode..."
-            pnpm test:cucumber:debug
+            pnpm run test:cucumber:debug
             ;;
           *)
-            echo "⚠️  Unknown test type '${{ inputs.test-type }}', defaulting to smoke"
-            pnpm test:cucumber:smoke
+            echo "Unknown test type '${{ inputs.test-type }}', defaulting to smoke"
+            pnpm run test:cucumber:smoke
             ;;
         esac
 
