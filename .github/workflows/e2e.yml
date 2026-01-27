@@ -117,27 +117,27 @@ jobs:
             if (testResults === 'skipped') {
               body = `**E2E Tests Skipped**
 
-E2E tests were skipped for this CI/Chore/Docs commit to speed up the pipeline.
+              E2E tests were skipped for this CI/Chore/Docs commit to speed up the pipeline.
 
-E2E tests are automatically skipped for commits that start with:
-- \`ci\` (continuous integration changes)
-- \`chore\` (maintenance/housekeeping tasks)
-- \`docs\` (documentation changes)
+              E2E tests are automatically skipped for commits that start with:
+              - \`ci\` (continuous integration changes)
+              - \`chore\` (maintenance/housekeeping tasks)
+              - \`docs\` (documentation changes)
 
-> This optimization reduces pipeline time for GitHub Actions changes that don't affect application functionality.`;
-            } else if (testResults === 'passed') {
-              body = `**E2E Tests Passed**
+              > This optimization reduces pipeline time for GitHub Actions changes that don't affect application functionality.`;
+                          } else if (testResults === 'passed') {
+                            body = `**E2E Tests Passed**
 
-All end-to-end tests are passing successfully!
+              All end-to-end tests are passing successfully!
 
-[View full test report](${runUrl})`;
-            } else {
-              body = `**E2E Tests Failed**
+              [View full test report](${runUrl})`;
+                          } else {
+                            body = `**E2E Tests Failed**
 
-Some end-to-end tests are failing. Please check the test results and fix any issues before merging.
+              Some end-to-end tests are failing. Please check the test results and fix any issues before merging.
 
-[View full test report](${runUrl})
-[Download test artifacts](${runUrl}#artifacts)`;
+              [View full test report](${runUrl})
+              [Download test artifacts](${runUrl}#artifacts)`;
             }
 
             github.rest.issues.createComment({
