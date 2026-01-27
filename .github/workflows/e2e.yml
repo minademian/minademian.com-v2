@@ -115,29 +115,29 @@ jobs:
 
             let body;
             if (testResults === 'skipped') {
-              body = `⚡ **E2E Tests Skipped**
+              body = `**E2E Tests Skipped**
 
-              E2E tests were skipped for this CI/Chore/Docs commit to speed up the pipeline.
+E2E tests were skipped for this CI/Chore/Docs commit to speed up the pipeline.
 
-              E2E tests are automatically skipped for commits that start with:
-              - \`ci\` (continuous integration changes)
-              - \`chore\` (maintenance/housekeeping tasks)
-              - \`docs\` (documentation changes)
+E2E tests are automatically skipped for commits that start with:
+- \`ci\` (continuous integration changes)
+- \`chore\` (maintenance/housekeeping tasks)
+- \`docs\` (documentation changes)
 
-              > This optimization reduces pipeline time for GitHub Actions changes that don't affect application functionality.`;
+> This optimization reduces pipeline time for GitHub Actions changes that don't affect application functionality.`;
             } else if (testResults === 'passed') {
-              body = `✅ **E2E Tests Passed**
+              body = `**E2E Tests Passed**
 
-              All end-to-end tests are passing successfully!
+All end-to-end tests are passing successfully!
 
-              [View full test report](${runUrl})`;
+[View full test report](${runUrl})`;
             } else {
-              body = `❌ **E2E Tests Failed**
+              body = `**E2E Tests Failed**
 
-              Some end-to-end tests are failing. Please check the test results and fix any issues before merging.
+Some end-to-end tests are failing. Please check the test results and fix any issues before merging.
 
-              [View full test report](${runUrl})
-              [Download test artifacts](${runUrl}#artifacts)`;
+[View full test report](${runUrl})
+[Download test artifacts](${runUrl}#artifacts)`;
             }
 
             github.rest.issues.createComment({
@@ -148,13 +148,13 @@ jobs:
             });
 
       - name: Fail job if tests failed
-        if: steps.test-results.outputs.results == 'failed' && inputs.fail_on_error == 'true'
+        if: steps.test-results.outputs.results == 'failed' && inputs.fail_on_error
         run: |
           echo "E2E tests failed. Failing the job."
           exit 1
 
       - name: Log test failure (non-blocking)
-        if: steps.test-results.outputs.results == 'failed' && inputs.fail_on_error == 'false'
+        if: steps.test-results.outputs.results == 'failed' && !inputs.fail_on_error
         run: |
           echo "⚠️ E2E tests failed, but continuing pipeline as this is configured as non-blocking."
           echo "Check the test results and artifacts for details."

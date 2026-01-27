@@ -201,7 +201,7 @@ runs:
             SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9.-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
 
             DEPLOYMENT_TYPE="sandbox"
-            TARGET_PATH="sandbox/$SANITIZED_BRANCH/"
+            TARGET_PATH="sandboxes/$SANITIZED_BRANCH/"
             DEPLOYMENT_URL="https://sandbox.minademian.com/$SANITIZED_BRANCH/"
             ENVIRONMENT_NAME="sandbox-$SANITIZED_BRANCH"
             BRANCH_NAME="$SANITIZED_BRANCH"

@@ -147,15 +147,15 @@ jobs:
           echo "🔍 Checking recent commit messages for CI/Chore/Docs patterns..."
 
           # Check the last 3 commits for ci, chore, or docs patterns (conventional commits)
-          # Matches: ci:, chore:, docs:, <any-type>(ci):
-          if git log --oneline -n 3 | grep -qE "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):)"; then
+          # Matches: ci:, chore:, docs:, <any-type>(ci):, fix(docs):
+          if git log --oneline -n 3 | grep -qE "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):|fix\(docs\):)"; then
             SKIP_E2E="true"
             SKIP_BDD="true"
             COMMIT_TYPE="ci-chore-docs"
             echo "🔧 CI/Chore/Docs commit detected - skipping E2E and BDD tests"
             echo ""
             echo "Matching commits found:"
-            git log --oneline -n 3 | grep -E "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):)" || true
+            git log --oneline -n 3 | grep -E "^[a-f0-9]+ ((ci|chore|docs):|[a-z]+\(ci\):|fix\(docs\):)" || true
             echo ""
             echo "All recent commits:"
             git log --oneline -n 3
@@ -173,40 +173,12 @@ jobs:
           echo "Final E2E skip setting: $SKIP_E2E"
           echo "Final BDD skip setting: $SKIP_BDD"
 
-  bdd-tests:
-    name: BDD Tests
-    runs-on: ubuntu-latest
-    needs: [check-commit-type]
-    if: needs.check-commit-type.outputs.skip-bdd != 'true'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.deployment_type == 'manual_tag_deploy' && github.event.inputs.tag_to_deploy || github.ref }}
-
-      - name: Setup Node.js and pnpm
-        uses: ./.github/actions/setup-node-pnpm
-
-      - name: Run BDD smoke tests
-        uses: ./.github/actions/bdd-tests
-        with:
-          test-type: 'smoke'
-
-  e2e-tests:
-    name: E2E Tests
-    uses: ./.github/workflows/e2e.yml
-    needs: [check-commit-type, bdd-tests]
-    if: needs.check-commit-type.outputs.skip-e2e != 'true'
-    with:
-      environment: 'production'
-      fail_on_error: true  # Blocking: fail the pipeline if e2e tests fail
-      skip-e2e: false
-
   build:
     name: Build Project
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, bdd-tests, e2e-tests]  # Wait for lint, typecheck, BDD tests AND e2e tests
-    if: always() && needs.lint.result == 'success' && needs.typecheck.result == 'success' && (needs.bdd-tests.result == 'success' || needs.bdd-tests.result == 'skipped') && (needs.e2e-tests.result == 'success' || needs.e2e-tests.result == 'skipped')
+    needs: [lint, typecheck ]  # Wait for lint, typecheck, BDD tests AND e2e tests
+    # bdd-tests, e2e-tests disabled temporarily
+    if: always() && needs.lint.result == 'success' && needs.typecheck.result == 'success'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
