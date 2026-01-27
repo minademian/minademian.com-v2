@@ -119,7 +119,7 @@ jobs:
     if: needs.check-commit-type.outputs.skip-e2e != 'true'
     with:
       environment: 'development'
-      fail_on_error: true  # Blocking: fail the pipeline if e2e tests fail
+      fail_on_error: true # Blocking: fail the pipeline if e2e tests fail
       skip-e2e: false
 
   build:
@@ -306,16 +306,16 @@ jobs:
 
             const comment = `## Feature Branch Preview
 
-Your changes have been deployed to the sandbox environment!
+            Your changes have been deployed to the sandbox environment!
 
-**Preview URL:** ${previewUrl || 'Deployment in progress...'}
-**Branch:** \`${branchName}\`
-**Commit:** \`${{ github.event.pull_request.head.sha }}\`
-**Build:** ${buildStatus}
+            **Preview URL:** ${previewUrl || 'Deployment in progress...'}
+            **Branch:** \`${branchName}\`
+            **Commit:** \`${{ github.event.pull_request.head.sha }}\`
+            **Build:** ${buildStatus}
 
-This preview will be updated automatically when you push new commits to this PR.
+            This preview will be updated automatically when you push new commits to this PR.
 
-> **Note:** The sandbox deployment is for preview purposes only and may be cleaned up periodically.`;
+            > **Note:** The sandbox deployment is for preview purposes only and may be cleaned up periodically.`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -333,16 +333,16 @@ This preview will be updated automatically when you push new commits to this PR.
 
             const comment = `## E2E Tests Skipped
 
-E2E tests were skipped for this CI/Chore commit to speed up the pipeline.
+            E2E tests were skipped for this CI/Chore commit to speed up the pipeline.
 
-**Reason:** Detected commit type: \`${commitType}\`
-**Commit:** \`${{ github.event.pull_request.head.sha }}\`
+            **Reason:** Detected commit type: \`${commitType}\`
+            **Commit:** \`${{ github.event.pull_request.head.sha }}\`
 
-E2E tests are automatically skipped for commits that start with:
-- \`ci\` (continuous integration changes)
-- \`chore\` (maintenance/housekeeping tasks)
+            E2E tests are automatically skipped for commits that start with:
+            - \`ci\` (continuous integration changes)
+            - \`chore\` (maintenance/housekeeping tasks)
 
-> This optimization reduces pipeline time for GitHub Actions changes that don't affect application functionality.`;
+            > This optimization reduces pipeline time for GitHub Actions changes that don't affect application functionality.`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,

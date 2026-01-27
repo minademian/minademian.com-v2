@@ -4,6 +4,10 @@ import { motion } from 'framer-motion';
 import React from 'react';
 
 const TransitionEffect = () => {
+  // Disabled: feels gimmicky. Remove this line to re-enable.
+  const DISABLED = true;
+  if (DISABLED) return null;
+
   return (
     <>
       <motion.div

@@ -1,8 +1,16 @@
 {
   "name": "minademian.com-v2",
-  "version": "2.2.4",
+  "version": "2.2.9",
   "type": "module",
-  "private": true,
+  "author": "Ursine Enterprises",
+  "license": "UNLICENSED",
+  "private": false,
+  "contributors": [
+    {
+      "name": "Mina Demian",
+      "email": "mina@minademian.com"
+    }
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
