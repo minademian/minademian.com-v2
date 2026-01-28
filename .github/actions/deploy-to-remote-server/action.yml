@@ -281,6 +281,37 @@ runs:
         echo "target-path=${TARGET_PATH}" >> $GITHUB_OUTPUT
         echo "full-target-path=${FULL_TARGET_PATH}" >> $GITHUB_OUTPUT
 
+    - name: Backup existing deployment
+      if: steps.check-skip.outputs.deployment-skipped != 'true'
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ inputs.ssh-host }}
+        username: ${{ inputs.ssh-username }}
+        password: ${{ inputs.ssh-password }}
+        script: |
+          TARGET_DIR="${{ steps.prepare.outputs.full-target-path }}"
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+          echo "Checking for existing deployment at: $TARGET_DIR"
+
+          if [ -d "$TARGET_DIR" ] && [ "$(ls -A "$TARGET_DIR" 2>/dev/null)" ]; then
+            BACKUP_DIR="${TARGET_DIR}.backup-${TIMESTAMP}"
+            echo "Existing deployment found - creating backup..."
+            echo "  Source: $TARGET_DIR"
+            echo "  Backup: $BACKUP_DIR"
+
+            mv "$TARGET_DIR" "$BACKUP_DIR"
+
+            if [ -d "$BACKUP_DIR" ]; then
+              FILE_COUNT=$(find "$BACKUP_DIR" -type f | wc -l)
+              echo "Backup created successfully ($FILE_COUNT files)"
+            else
+              echo "Warning: Backup may have failed"
+            fi
+          else
+            echo "No existing deployment to backup"
+          fi
+
     - name: Create remote directory structure
       if: steps.check-skip.outputs.deployment-skipped != 'true'
       uses: appleboy/ssh-action@v1.0.3
@@ -289,18 +320,15 @@ runs:
         username: ${{ inputs.ssh-username }}
         password: ${{ inputs.ssh-password }}
         script: |
-          echo "🔍 Creating remote directory structure..."
           TARGET_DIR="${{ steps.prepare.outputs.full-target-path }}"
-          echo "Target directory: $TARGET_DIR"
+          echo "Creating fresh deployment directory: $TARGET_DIR"
 
-          # Create directory if it doesn't exist
           mkdir -p "$TARGET_DIR"
 
-          # Verify directory was created
           if [ -d "$TARGET_DIR" ]; then
-            echo "✅ Directory structure ready: $TARGET_DIR"
+            echo "Directory ready: $TARGET_DIR"
           else
-            echo "❌ Failed to create directory: $TARGET_DIR"
+            echo "Failed to create directory: $TARGET_DIR"
             exit 1
           fi
 
