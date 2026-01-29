@@ -8,7 +8,9 @@ import { FluidRow } from '@/atoms/FluidRow.component';
 import { GridCell } from '@/atoms/GridCell.component';
 import { GridRow } from '@/atoms/GridRow.component';
 import { SectionComponent } from '@/atoms/Section.component';
+import { CaseStudyButton } from '@/molecules/CaseStudyButton.component';
 import { ContactButton } from '@/molecules/ContactButton.component';
+import { GitHubPill } from '@/molecules/GitHubPill.component';
 import { HomePageSection } from '@/molecules/HomePageSection.component';
 import { ResumeButton } from '@/molecules/ResumeButton.component';
 import AnimatedText from '@/organisms/AnimatedText.component';
@@ -21,8 +23,10 @@ export default function Page() {
   return (
     <>
       <TransitionEffect />
-      <main className="flex flex-col bg-light dark:bg-dark dark:text-light
-      w-full min-h-screen text-dark 2xs:w-full 2xs:p-1">
+      <main
+        className="flex flex-col bg-light dark:bg-dark dark:text-light
+      w-full min-h-screen text-dark 2xs:w-full 2xs:p-1"
+      >
         <SectionComponent className="pt-0 md:p-8 sm:p-6 2xs:p-4">
           <div className="flex items-center justify-between w-full lg:flex-col">
             <div className="w-1/2 md:w-full lg:w-full lg:mb-8 md:mb-6">
@@ -40,12 +44,23 @@ export default function Page() {
                 className="!text-6xl !text-left xl:!text-5xl lg:!text-center lg:!text-6xl md:!text-5xl sm:!text-3xl"
               />
               <p className="my-4 text-2xl font-medium lg:!text-3xl md:!text-2xl sm:!text-3xl 2xs:!text-sm 2xs:p-0">
-                Full-stack engineer. I build web apps. I build AI/ML systems.
-                I use AI agents to do both. I take the ethics seriously.
+                Full-stack engineer. I build web apps. I build AI/ML systems. I
+                use AI agents to do both. I take the ethics seriously.
               </p>
-              <div className="flex items-center self-start mt-2 lg:self-center">
-                <ContactButton />
-              </div>
+              <GridRow maxWidth="max-w-[1900px]">
+                <GridCell>
+                  <h3 className="text-lg font-bold mb-4 text-dark dark:text-light">
+                    Contact
+                  </h3>
+                  <ContactButton />
+                </GridCell>
+                <GridCell>
+                  <h3 className="text-lg font-bold mb-4 text-dark dark:text-light">
+                    Open to Collaboration and Opportunities
+                  </h3>
+                  <ResumeButton />
+                </GridCell>
+              </GridRow>
             </div>
           </div>
         </SectionComponent>
@@ -56,37 +71,32 @@ export default function Page() {
                 className="text-xl font-bold uppercase tracking-wide text-primary dark:text-primaryDark
               mb-6 sm:mb-4 lg:text-center"
               >
-              Featured Project
+                Featured Project
               </h2>
               <h3
                 className="text-4xl font-bold text-dark dark:text-light
                   md:text-3xl sm:text-2xl"
               >
-                  Driver Recommendations
+                Driver Recommendations
               </h3>
               <p
                 className="text-lg text-dark/80 dark:text-light/80 mb-6
                   md:text-base leading-relaxed"
               >
-                  A full-stack system that provides machine-learning-driven trip
-                  recommendations for taxi drivers, predicting supply and demand
-                  in real-time.
+                A full-stack system that provides machine-learning-driven trip
+                recommendations for taxi drivers, predicting supply and demand
+                in real-time.
               </p>
-              <Link
-                href="/projects"
-                className="inline-flex items-center text-dark dark:text-light font-medium
-                    border-b-2 border-dark dark:border-light pb-1
-                    hover:border-primary dark:hover:border-primaryDark
-                    transition-colors"
-              >
-                  View Case Study
-              </Link>
+              <CaseStudyButton label={'View Demo'} />
               <div className="mt-6 sm:mt-4 lg:flex lg:justify-center">
                 <TechStack techs={['React', 'TypeScript', 'MongoDB', 'Node']} />
               </div>
             </FluidCell>
             <FluidCell variant="right-auto">
-              <Link href="/projects" className="block max-w-[280px] lg:max-w-[240px] sm:max-w-[200px]">
+              <Link
+                href="/projects"
+                className="block max-w-[280px] lg:max-w-[240px] sm:max-w-[200px]"
+              >
                 <Image
                   src={projectImg}
                   alt="Driver Recommendations Project"
@@ -100,49 +110,111 @@ export default function Page() {
           </FluidRow>
         </HomePageSection>
         <HomePageSection>
-          <GridRow>
+          <GridRow maxWidth="max-w-[1900px]">
             {/* About */}
-            <GridCell>
+            <GridCell className="border-l-4 border-primary dark:border-primaryDark pl-6">
               <h3 className="text-lg font-bold mb-4 text-dark dark:text-light">
                 Latest Publications
               </h3>
-              <p className="text-base text-dark/80 dark:text-light/80 leading-relaxed">
-                I&apos;m a senior full-stack engineer with years of experience
-                in building scalable web applications and complex systems.
-              </p>
+              <ul className="space-y-4 text-base text-dark/80 dark:text-light/80 leading-relaxed">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary dark:text-primaryDark">•</span>
+                  <span>
+                    I&apos;ve launched my{' '}
+                    <GitHubPill
+                      href="https://github.com/minademian/documentation-library"
+                      label="documentation-library"
+                    />
+                    !
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary dark:text-primaryDark">•</span>
+                  <span>
+                    My first two open-source packages!
+                    <table className="mt-2 text-sm">
+                      <tbody>
+                        <tr>
+                          <td className="pr-3 py-1 align-top">
+                            <GitHubPill
+                              href="https://github.com/minademian/server-utilities"
+                              label="server-utilities"
+                            />
+                          </td>
+                          <td className="py-1">
+                            Server utilities for auditing remote servers
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="pr-3 py-1 align-top">
+                            <GitHubPill
+                              href="https://github.com/ursine-code/yarn-shell-completion"
+                              label="yarn-shell-completion"
+                            />
+                          </td>
+                          <td className="py-1">
+                            Yarn shell completion for ohmyzsh and bash
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </span>
+                </li>
+              </ul>
             </GridCell>
             <GridCell>
               <h3 className="text-lg font-bold mb-4 text-dark dark:text-light">
                 More Writing
               </h3>
-              <div className="space-y-4">
-                <article>
-                  <Link
-                    href="/articles"
-                    className="text-base font-medium text-dark dark:text-light
-                      hover:text-primary dark:hover:text-primaryDark transition-colors"
-                  >
-                    Optimising React Applications
-                  </Link>
-                  <p className="text-sm text-dark/60 dark:text-light/60 mt-1">
-                    Master memory optimisation with the power of memoisation.
-                  </p>
-                </article>
-              </div>
-            </GridCell>
-          </GridRow>
-          <GridRow>
-            <GridCell>
-              <h3 className="text-lg font-bold mb-4 text-dark dark:text-light">
-                Contact
-              </h3>
-              <ContactButton />
-            </GridCell>
-            <GridCell>
-              <h3 className="text-lg font-bold mb-4 text-dark dark:text-light">
-                Open to Collaboration and Opportunities
-              </h3>
-              <ResumeButton />
+              <table className="text-sm text-dark/80 dark:text-light/80 w-full rounded-lg overflow-hidden">
+                <tbody>
+                  <tr className="bg-primary/5 dark:bg-primaryDark/5">
+                    <td className="px-3 py-2">
+                      <Link
+                        href="https://www.linkedin.com/pulse/lessons-learned-from-react-native-app-production-mina-demian-cd3cf/"
+                        target="_blank"
+                        className="text-primary dark:text-primaryDark underline underline-offset-2 hover:text-dark dark:hover:text-light transition-colors"
+                      >
+                        Lessons Learned from React Native App Production
+                      </Link>
+                    </td>
+                  </tr>
+                  <tr className="bg-dark/5 dark:bg-light/5">
+                    <td className="px-3 py-2">
+                      <Link
+                        href="https://www.linkedin.com/pulse/grafting-tdd-legacy-react-native-codebase-mina-demian-iy5df/"
+                        target="_blank"
+                        className="text-primary dark:text-primaryDark underline underline-offset-2 hover:text-dark dark:hover:text-light transition-colors"
+                      >
+                        Grafting TDD into a Legacy React Native Codebase
+                      </Link>
+                    </td>
+                  </tr>
+                  <tr className="bg-primary/5 dark:bg-primaryDark/5">
+                    <td className="px-3 py-2">
+                      <Link
+                        href="https://www.linkedin.com/pulse/timeboxing-ideas-ai-assisted-engineering-mina-demian-5z0mf/"
+                        target="_blank"
+                        className="text-primary dark:text-primaryDark underline underline-offset-2 hover:text-dark dark:hover:text-light transition-colors"
+                      >
+                        Timeboxing Ideas with AI-Assisted Engineering
+                      </Link>
+                    </td>
+                  </tr>
+                  <tr className="bg-dark/5 dark:bg-light/5">
+                    <td className="px-3 py-2">
+                      <Link
+                        href="https://www.linkedin.com/pulse/using-adapter-pattern-tame-wild-react-native-upgrades-mina-demian-jagmf/"
+                        target="_blank"
+                        className="text-primary dark:text-primaryDark underline underline-offset-2 hover:text-dark dark:hover:text-light transition-colors"
+                      >
+                        Using the Adapter Pattern to Tame Wild React Native
+                        Upgrades
+                      </Link>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </GridCell>
           </GridRow>
         </HomePageSection>
