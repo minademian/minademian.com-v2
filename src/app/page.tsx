@@ -3,8 +3,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { FluidCell } from '@/atoms/FluidCell.component';
+import { FluidRow } from '@/atoms/FluidRow.component';
+import { GridCell } from '@/atoms/GridCell.component';
+import { GridRow } from '@/atoms/GridRow.component';
 import { SectionComponent } from '@/atoms/Section.component';
-import { LinkArrow } from '@/molecules//Icons.component';
+import { ContactButton } from '@/molecules/ContactButton.component';
+import { HomePageSection } from '@/molecules/HomePageSection.component';
+import { ResumeButton } from '@/molecules/ResumeButton.component';
 import AnimatedText from '@/organisms/AnimatedText.component';
 import { TechStack } from '@/organisms/TechStack.component';
 import TransitionEffect from '@/organisms/TransitionEffect.component';
@@ -38,88 +44,108 @@ export default function Page() {
                 I use AI agents to do both. I take the ethics seriously.
               </p>
               <div className="flex items-center self-start mt-2 lg:self-center">
-                <Link
-                  href="https://linkedin.com/in/minademian"
-                  target={'_blank'}
-                  className="flex items-center text-light p-2.5 px-6 rounded-lg text-lg
-                  font-semibold border-2 border-solid bg-dark
-                  border-transparent  dark:bg-light dark:text-dark
-                  hover:border-dark hover:bg-light hover:text-dark
-                  hover:dark:bg-dark hover:dark:text-light hover:dark:border-light
-                  "
-                  download={true}
-                >
-                  Resume <LinkArrow className={'w-6 ml-1'} />
-                </Link>
-                <Link
-                  href="mailto:mina@minademian.com"
-                  target={'_blank'}
-                  className="ml-4 text-lg font-medium capitalize text-dark dark:text-light underline
-                  "
-                >
-                  Contact
-                </Link>
+                <ContactButton />
               </div>
             </div>
           </div>
         </SectionComponent>
-
-        {/* Featured Project Section */}
-        <SectionComponent className="pt-0 md:p-8 sm:p-6 2xs:p-4">
-          <div className="flex flex-col">
-            <span
-              className="text-xl font-bold uppercase tracking-wide text-primary dark:text-primaryDark
+        <HomePageSection>
+          <FluidRow>
+            <FluidCell variant="left">
+              <h2
+                className="text-xl font-bold uppercase tracking-wide text-primary dark:text-primaryDark
               mb-6 sm:mb-4 lg:text-center"
-            >
+              >
               Featured Project
-            </span>
-            <div
-              className="flex items-center justify-between w-full
-              lg:flex-col lg:gap-8 md:gap-6"
-            >
-              <div className="w-1/2 lg:w-full lg:mb-6 lg:text-center">
-                <h2
-                  className="text-4xl font-bold mb-4 text-dark dark:text-light
-                  md:text-3xl sm:text-2xl sm:mb-3"
-                >
+              </h2>
+              <h3
+                className="text-4xl font-bold text-dark dark:text-light
+                  md:text-3xl sm:text-2xl"
+              >
                   Driver Recommendations
-                </h2>
-                <p
-                  className="text-lg text-dark/80 dark:text-light/80 mb-6
-                  md:text-base md:mb-5 sm:mb-4 leading-relaxed"
-                >
+              </h3>
+              <p
+                className="text-lg text-dark/80 dark:text-light/80 mb-6
+                  md:text-base leading-relaxed"
+              >
                   A full-stack system that provides machine-learning-driven trip
                   recommendations for taxi drivers, predicting supply and demand
                   in real-time.
-                </p>
-                <Link
-                  href="/projects"
-                  className="inline-flex items-center text-dark dark:text-light font-medium
+              </p>
+              <Link
+                href="/projects"
+                className="inline-flex items-center text-dark dark:text-light font-medium
                     border-b-2 border-dark dark:border-light pb-1
                     hover:border-primary dark:hover:border-primaryDark
                     transition-colors"
-                >
+              >
                   View Case Study
-                </Link>
-                <div className="mt-6 sm:mt-4 lg:flex lg:justify-center">
-                  <TechStack techs={['React', 'TypeScript', 'MongoDB', 'Node']} />
-                </div>
+              </Link>
+              <div className="mt-6 sm:mt-4 lg:flex lg:justify-center">
+                <TechStack techs={['React', 'TypeScript', 'MongoDB', 'Node']} />
               </div>
-              <div className="w-1/2 lg:w-full flex justify-center lg:justify-center">
-                <Link href="/projects" className="block max-w-[280px] lg:max-w-[240px] sm:max-w-[200px]">
-                  <Image
-                    src={projectImg}
-                    alt="Driver Recommendations Project"
-                    className="w-full h-auto rounded-2xl shadow-lg
+            </FluidCell>
+            <FluidCell variant="right-auto">
+              <Link href="/projects" className="block max-w-[280px] lg:max-w-[240px] sm:max-w-[200px]">
+                <Image
+                  src={projectImg}
+                  alt="Driver Recommendations Project"
+                  className="w-full h-auto rounded-2xl shadow-lg
                       hover:shadow-xl transition-shadow border border-dark/10 dark:border-light/10"
-                    priority
-                    sizes="(max-width: 640px) 200px, (max-width: 1024px) 240px, 280px"
-                  />
-                </Link>
+                  priority
+                  sizes="(max-width: 640px) 200px, (max-width: 1024px) 240px, 280px"
+                />
+              </Link>
+            </FluidCell>
+          </FluidRow>
+        </HomePageSection>
+        <HomePageSection>
+          <GridRow>
+            {/* About */}
+            <GridCell>
+              <h3 className="text-lg font-bold mb-4 text-dark dark:text-light">
+                Latest Publications
+              </h3>
+              <p className="text-base text-dark/80 dark:text-light/80 leading-relaxed">
+                I&apos;m a senior full-stack engineer with years of experience
+                in building scalable web applications and complex systems.
+              </p>
+            </GridCell>
+            <GridCell>
+              <h3 className="text-lg font-bold mb-4 text-dark dark:text-light">
+                More Writing
+              </h3>
+              <div className="space-y-4">
+                <article>
+                  <Link
+                    href="/articles"
+                    className="text-base font-medium text-dark dark:text-light
+                      hover:text-primary dark:hover:text-primaryDark transition-colors"
+                  >
+                    Optimising React Applications
+                  </Link>
+                  <p className="text-sm text-dark/60 dark:text-light/60 mt-1">
+                    Master memory optimisation with the power of memoisation.
+                  </p>
+                </article>
               </div>
-            </div>
-          </div>
-        </SectionComponent>
+            </GridCell>
+          </GridRow>
+          <GridRow>
+            <GridCell>
+              <h3 className="text-lg font-bold mb-4 text-dark dark:text-light">
+                Contact
+              </h3>
+              <ContactButton />
+            </GridCell>
+            <GridCell>
+              <h3 className="text-lg font-bold mb-4 text-dark dark:text-light">
+                Open to Collaboration and Opportunities
+              </h3>
+              <ResumeButton />
+            </GridCell>
+          </GridRow>
+        </HomePageSection>
       </main>
     </>
   );
