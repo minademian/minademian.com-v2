@@ -44,7 +44,7 @@ export default function Page() {
                 className="!text-6xl !text-left xl:!text-5xl lg:!text-center lg:!text-6xl md:!text-5xl sm:!text-3xl"
               />
               <p className="my-4 text-2xl font-medium lg:!text-3xl md:!text-2xl sm:!text-3xl 2xs:!text-sm 2xs:p-0">
-                Full-stack engineer. I build web apps. I build AI/ML systems. I
+                Full-stack engineer. I build web apps. I build systems that interface with AI/ML. I
                 use AI agents to do both. I take the ethics seriously.
               </p>
               <GridRow maxWidth="max-w-[1900px]">

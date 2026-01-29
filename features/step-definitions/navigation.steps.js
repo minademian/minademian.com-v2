@@ -255,8 +255,7 @@ When('I view the about page', async function () {
 Then('I should see the main heading {string}', async function (expectedHeading) {
   if (!this.page) throw new Error('Page not initialized');
 
-  const heading =  await this.page.locator('div').filter({ hasText: expectedHeading }).nth(1).first();
-  const headingText = await heading.textContent();
-  // Trim whitespace to handle extra spaces
-  expect(headingText?.trim()).toContain(expectedHeading);
+  // Look for the heading text directly using getByText for exact or partial match
+  const heading = this.page.getByText(expectedHeading, { exact: true });
+  await expect(heading.first()).toBeVisible();
 });

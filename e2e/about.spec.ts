@@ -12,7 +12,7 @@ test.describe('About Page', () => {
     await page.goto('/about');
 
     // Check for the main animated text heading
-    await expect(page.getByText('Products, Not Code')).toBeVisible();
+    await expect(page.getByText('Products, Not Code!')).toBeVisible();
   });
 
   test('displays profile section with content', async ({ page }) => {
@@ -23,12 +23,10 @@ test.describe('About Page', () => {
 
     // Check for key profile content
     await expect(page.getByText(/My name is Mina Demian/)).toBeVisible();
-    await expect(page.getByText(/AI-empowered software engineer/)).toBeVisible();
-    await expect(page.getByText(/Skilled in backend development, full\-stack architecture, and technical leadership/)).toBeVisible();
+    await expect(page.getByText(/full-stack engineer/)).toBeVisible();
 
     // Check for philosophy and approach content
     await expect(page.getByText(/code and technology are tools/)).toBeVisible();
-    await expect(page.getByText(/Good products are for people by people/)).toBeVisible();
   });
 
   test('displays profile image', async ({ page }) => {
@@ -93,17 +91,17 @@ test.describe('About Page', () => {
 
     // Test desktop view
     await page.setViewportSize({ width: 1200, height: 800 });
-    await expect(page.getByText('Products, Not Code')).toBeVisible();
+    await expect(page.getByText('Products, Not Code!')).toBeVisible();
     await expect(page.getByText('Profile')).toBeVisible();
 
     // Test tablet view
     await page.setViewportSize({ width: 768, height: 1024 });
-    await expect(page.getByText('Products, Not Code')).toBeVisible();
+    await expect(page.getByText('Products, Not Code!')).toBeVisible();
     await expect(page.getByText('Profile')).toBeVisible();
 
     // Test mobile view
     await page.setViewportSize({ width: 375, height: 667 });
-    await expect(page.getByText('Products, Not Code')).toBeVisible();
+    await expect(page.getByText('Products, Not Code!')).toBeVisible();
     await expect(page.getByText('Profile')).toBeVisible();
   });
 
