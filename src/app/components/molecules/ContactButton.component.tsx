@@ -14,7 +14,6 @@ export const ContactButton = ({
   return (
     <Link
       href={href}
-      target="_blank"
       className={`inline-flex items-center text-light p-2.5 px-6 rounded-lg text-lg
         font-semibold border-2 border-solid bg-primary
         border-transparent dark:bg-primaryDark dark:text-dark

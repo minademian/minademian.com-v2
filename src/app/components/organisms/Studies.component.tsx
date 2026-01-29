@@ -16,14 +16,6 @@ type EntriesProps = {
 const data: EntriesProps[] = [
   {
     key: 1,
-    type: 'Google Project Management: Professional Certificate',
-    time: '2023-present',
-    place: 'Coursera',
-    // eslint-disable-next-line max-len
-    info: 'Completed the following modules: Foundations of Project Management, Project Initiation: Starting a Successful, Project Agile Project Management.',
-  },
-  {
-    key: 2,
     type: 'Bachelor of Science in Software Engineering and Multimedia Systems, Joint Honors',
     time: '2004',
     place: 'Oxford Brookes University',
