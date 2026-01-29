@@ -21,21 +21,18 @@ export default function About() {
       <main className="flex w-full flex-col items-center justify-center bg-light dark:bg-dark dark:text-light 2xs:w-full 2xs:p-0">
         <SectionComponent className="pt-16 2xs:p-2 2xs:mt-2">
           <AnimatedText
-            text="Products, Not Code"
+            text="Products, Not Code!"
             className="mb-16 lg:!text-7xl sm:!text-6xl xs:!text-4xl sm:mb-8 2xs:!text-3xl 2xs:p-0 2xs:mb-8"
           />
-          <div className="grid w-full grid-cols-8 gap-16 2xs:gap-19 2xs:p-0">
-            <div className="col-span-4 flex flex-col items-start justify-start xl:col-span-4 md:order-2 md:col-span-8 2xs:col-span-8 2xs:mr-[5rem]">
+          <div className="flex flex-col gap-12 w-full max-w-3xl mx-auto">
+            <div className="flex flex-col items-start justify-start">
               <h2 className="mb-4 text-lg font-bold uppercase text-dark/75 dark:text-light">
                 Profile
               </h2>
               <p className="my-4 font-light">
-                My name is Mina Demian and I&apos;m an AI-empowered software
-                engineer. Skilled in backend development, full-stack architecture,
-                and technical leadership, I have a proven record of mentoring engineers
-                and designing robust platforms. Experienced across startups, government,
-                and enterprise projects, and passionate about building resilient systems
-                that solve complex business challenges..
+                My name is Mina Demian. I&apos;m a full-stack engineer. I&apos;ve led teams,
+                mentored engineers, and built platforms across startups, government, and
+                enterprise. I care about systems that actually work.
               </p>
               <p className="my-4 font-light">
                 I believe that code and technology are tools and not the end. I
@@ -43,13 +40,8 @@ export default function About() {
                 using the right tool for the job. With the right tools, focus,
                 and strategy, technology helps us build the right product!
               </p>
-              <p className="my-4 font-light">
-                Good products are for people by people, and I enjoy working with
-                both types of people! Products are also built collegiately by
-                people, and teamwork is where real magic happens.
-              </p>
             </div>
-            <div className="col-span-4 relative h-max rounded-2xl border-2 border-solid border-dark bg-light p-8 2xs:p-3 2xs:w-[90vw] md:order-1 md:col-span-8">
+            <div className="relative h-max rounded-2xl border-2 border-solid border-dark bg-light p-8 2xs:p-3 mx-auto max-w-md">
               <div className="absolute top-0 -right-3 -z-10 w-[102%] h-[103%] rounded-[2rem] bg-dark dark:bg-light" />
               <Image
                 src={profilePhoto}

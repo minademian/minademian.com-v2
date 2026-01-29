@@ -8,7 +8,7 @@ Feature: About Page
     Given I am on the about page
 
   Scenario: About page displays profile information
-    Then I should see the main heading "Products, Not Code"
+    Then I should see the main heading "Products, Not Code!"
     And I should see the profile section with personal information
     And I should see the developer profile image
 

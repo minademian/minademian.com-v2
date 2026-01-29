@@ -179,6 +179,14 @@ jobs:
     needs: [lint, typecheck ]  # Wait for lint, typecheck, BDD tests AND e2e tests
     # bdd-tests, e2e-tests disabled temporarily
     if: always() && needs.lint.result == 'success' && needs.typecheck.result == 'success'
+    env:
+      NEXT_PUBLIC_EMAILJS_SERVICE_ID: ${{ secrets.NEXT_PUBLIC_EMAILJS_SERVICE_ID }}
+      NEXT_PUBLIC_EMAILJS_TEMPLATE_ID: ${{ secrets.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID }}
+      NEXT_PUBLIC_EMAILJS_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY }}
+      EMAILJS_ADMIN_SERVICE_ID: ${{ secrets.EMAILJS_ADMIN_SERVICE_ID }}
+      EMAILJS_ADMIN_TEMPLATE_ID: ${{ secrets.EMAILJS_ADMIN_TEMPLATE_ID }}
+      EMAILJS_ADMIN_PUBLIC_KEY: ${{ secrets.EMAILJS_ADMIN_PUBLIC_KEY }}
+      ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

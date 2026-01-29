@@ -12,10 +12,10 @@ test.describe('Homepage', () => {
     await page.goto('/');
 
     // Check for the main animated text heading
-    await expect(page.getByText('Turning Ideas Into Scaleable Products')).toBeVisible();
+    await expect(page.getByText('I design and build production-grade web applications.')).toBeVisible();
 
     // Check for the description paragraph
-    await expect(page.getByText(/As an experienced full-stack engineer/)).toBeVisible();
+    await expect(page.getByText(/Full-stack engineer\. I build web apps/)).toBeVisible();
   });
 
   test('has working resume download link', async ({ page }) => {
@@ -26,7 +26,7 @@ test.describe('Homepage', () => {
     await expect(resumeLink).toBeVisible();
 
     // Check that the link has the correct href
-    await expect(resumeLink).toHaveAttribute('href', 'https://files.minademian.com/MinaDemian-2024-website.pdf');
+    await expect(resumeLink).toHaveAttribute('href', 'https://linkedin.com/in/minademian');
     await expect(resumeLink).toHaveAttribute('target', '_blank');
   });
 

@@ -18,7 +18,6 @@ import NavLink from '../molecules/NavLink.component';
 
 import Logo from './Logo.component';
 
-
 const NavBar = () => {
   const [mode, setMode] = useThemeSwitcher();
   const [isOpen, setIsOpen] = useState(false);
@@ -28,7 +27,8 @@ const NavBar = () => {
   };
   return (
     <>
-      <header className="w-full px-32 py-8 font-medium flex items-center justify-between dark:text-light relative z-10 lg:px-16 md:px-12 sm:px-8">
+      <header className="w-full px-12 py-6 font-medium flex items-center justify-between dark:text-light relative z-10 lg:px-8 md:px-6 sm:px-4">
+        <Logo />
         <button
           className="flex-col justify-center items-center hidden lg:flex"
           onClick={handleClick}
@@ -53,37 +53,13 @@ const NavBar = () => {
             `}
           ></span>
         </button>
-        <div className="w-full flex justify-between items-center lg:hidden">
-          <nav>
-            <NavLink href="/" title={'Home'} className="mr-4" />
-            <NavLink href="/about" title={'About'} className="mx-4" />
-            <NavLink href="/projects" title={'Projects'} className="mx-4" />
-            <NavLink href="/articles" title={'Articles'} className="ml-4" />
-          </nav>
-          <nav className="flex items-center justify-center flex-wrap">
-            <MotionLink href="https://twitter.com/minadimyan">
-              <TwitterIcon />
-            </MotionLink>
-            <MotionLink href={'https://github.com/minademian'}>
-              <GitHubIcon />
-            </MotionLink>
-            <MotionLink href="https://linkedin.com/in/minademian">
-              <LinkedInComponent />
-            </MotionLink>
-            <button
-              onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}
-              className={`ml-3 flex items-center justify-center rounded-full p-1
-            ${mode === 'light' ? 'bg-dark text-light' : 'bg-light text-dark'}
-            `}
-            >
-              {mode === 'dark' ? (
-                <SunIcon className="fill-dark" />
-              ) : (
-                <MoonIcon className="fill-dark" />
-              )}
-            </button>
-          </nav>
-        </div>
+        <nav className="flex items-center gap-8 lg:hidden">
+          <NavLink href="/" title={'Home'} />
+          <NavLink href="/about" title={'About'} />
+          <NavLink href="/projects" title={'Projects'} />
+          <NavLink href="/portfolio" title={'Portfolio'} />
+          <NavLink href="/articles" title={'Writing'} />
+        </nav>
 
         {isOpen ? (
           <motion.div
@@ -105,12 +81,6 @@ const NavBar = () => {
                 toggle={handleClick}
               />
               <MobileNavLink
-                href="/about"
-                title={'About'}
-                className=""
-                toggle={handleClick}
-              />
-              <MobileNavLink
                 href="/projects"
                 title={'Projects'}
                 className=""
@@ -118,7 +88,13 @@ const NavBar = () => {
               />
               <MobileNavLink
                 href="/articles"
-                title={'Articles'}
+                title={'Writing'}
+                className=""
+                toggle={handleClick}
+              />
+              <MobileNavLink
+                href="/contact"
+                title={'Contact'}
                 className=""
                 toggle={handleClick}
               />
@@ -151,10 +127,6 @@ const NavBar = () => {
             </nav>
           </motion.div>
         ) : null}
-
-        <div className="absolute left-[50%] top-2 translate-x-[-50%]">
-          <Logo />
-        </div>
       </header>
     </>
   );
