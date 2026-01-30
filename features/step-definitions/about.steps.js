@@ -5,8 +5,13 @@ import { expect } from '@playwright/test';
 Then('I should see the profile section with personal information', async function () {
   if (!this.page) throw new Error('Page not initialized');
 
-  const profileSection = this.page.locator('[data-testid="profile"], .profile, section').first();
-  await expect(profileSection).toBeVisible();
+  // Look for the Profile heading and content
+  const profileHeading = this.page.getByRole('heading', { name: 'Profile' });
+  await expect(profileHeading).toBeVisible();
+
+  // Verify personal information is present
+  const personalInfo = this.page.getByText(/My name is Mina Demian/);
+  await expect(personalInfo).toBeVisible();
 });
 
 Then('I should see the {string} section', async function (sectionName) {

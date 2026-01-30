@@ -57,7 +57,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${montserrat.variable} font-mont bg-light dark:bg-dark w-full min-h-screen xl:p-24 lg:p-16 md:p-12 sm:p-8 2xs:p-0`}
+        className={`${montserrat.variable} font-mont bg-gradient-to-t from-gray-300 to-gray-100 dark:from-gray-950 dark:to-gray-800 w-full min-h-screen p-6 md:p-4 sm:p-3 2xs:p-2`}
       >
         <Script id="theme-switcher" strategy="beforeInteractive">
           {`
@@ -69,9 +69,11 @@ export default function RootLayout({
           }
           `}
         </Script>
-        <NavBar></NavBar>
-        <AnimatePresence mode="wait">{children}</AnimatePresence>
-        <Footer></Footer>
+        <div className="bg-light dark:bg-dark rounded-3xl shadow-lg min-h-[calc(100vh-3rem)] md:min-h-[calc(100vh-2rem)] sm:min-h-[calc(100vh-1.5rem)] 2xs:min-h-[calc(100vh-1rem)]">
+          <NavBar></NavBar>
+          <AnimatePresence mode="wait">{children}</AnimatePresence>
+          <Footer></Footer>
+        </div>
       </body>
     </html>
   );

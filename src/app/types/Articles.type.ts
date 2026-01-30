@@ -2,7 +2,7 @@ import { StaticImageData } from 'next/image';
 
 export type FeaturedArticleProps = {
   title: string;
-  img: StaticImageData;
+  img?: StaticImageData;
   link: string;
   time: string;
   summary: string;

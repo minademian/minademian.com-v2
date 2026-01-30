@@ -127,6 +127,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, typecheck, bdd-tests, e2e-tests]
     if: always() && needs.lint.result == 'success' && needs.typecheck.result == 'success' && (needs.bdd-tests.result == 'success' || needs.bdd-tests.result == 'skipped') && (needs.e2e-tests.result == 'success' || needs.e2e-tests.result == 'skipped')
+    env:
+      NEXT_PUBLIC_EMAILJS_SERVICE_ID: ${{ secrets.NEXT_PUBLIC_EMAILJS_SERVICE_ID }}
+      NEXT_PUBLIC_EMAILJS_TEMPLATE_ID: ${{ secrets.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID }}
+      NEXT_PUBLIC_EMAILJS_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY }}
+      EMAILJS_ADMIN_SERVICE_ID: ${{ secrets.EMAILJS_ADMIN_SERVICE_ID }}
+      EMAILJS_ADMIN_TEMPLATE_ID: ${{ secrets.EMAILJS_ADMIN_TEMPLATE_ID }}
+      EMAILJS_ADMIN_PUBLIC_KEY: ${{ secrets.EMAILJS_ADMIN_PUBLIC_KEY }}
+      ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
     outputs:
       artifacts-uploaded: ${{ steps.check-upload.outputs.artifacts-uploaded }}
       cache-hit: ${{ steps.build-cache.outputs.cache-hit }}

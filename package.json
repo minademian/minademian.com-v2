@@ -1,6 +1,6 @@
 {
   "name": "minademian.com-v2",
-  "version": "2.2.9",
+  "version": "2.3.0",
   "type": "module",
   "author": "Ursine Enterprises",
   "license": "UNLICENSED",
@@ -34,6 +34,7 @@
     "test:bdd": "pnpm test:cucumber"
   },
   "dependencies": {
+    "@emailjs/browser": "4.4.1",
     "framer-motion": "^11.0.3",
     "next": "14.1.1",
     "react": "^18",

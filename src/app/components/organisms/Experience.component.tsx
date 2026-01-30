@@ -18,6 +18,16 @@ type DetailsProps = {
 const data: DetailsProps[] = [
   {
     key: 1,
+    position: 'Senior Front-End Engineer',
+    company: 'Cabonline Group AB',
+    companyLink: 'https://cabonline.com',
+    time: 'Mar 2024-Feb 2026',
+    address: 'Stockholm, Sweden',
+    // eslint-disable-next-line max-len
+    work: 'Reduced time spent on internal back-office system by 70% after overhauling system. Built a TypeScript micro-service to implement an audit trail for the new back-office system. Took the initiative to update documentation for both on-boarding and the API documentation for core micro-services.',
+  },
+  {
+    key: 2,
     position: 'Full-Stack Engineer',
     company: 'Fondo',
     companyLink: 'https://fondo.se',
@@ -27,7 +37,7 @@ const data: DetailsProps[] = [
     work: 'Reduced time spent on internal back-office system by 70% after overhauling system. Built a TypeScript micro-service to implement an audit trail for the new back-office system. Took the initiative to update documentation for both on-boarding and the API documentation for core micro-services.',
   },
   {
-    key: 2,
+    key: 3,
     position: 'Front-End Developer',
     company: 'Consid',
     companyLink: 'https://consid.se',
@@ -37,7 +47,7 @@ const data: DetailsProps[] = [
     work: 'Worked for Swedish government: led the front-end team (3 people) to implement two effectual and important web applications that vastly improved the job-seeking process for those in long-time unemployment. Implemented the build and deployment chain in Redhat Openshift from scratch for the front-end Angular application. Decreased time spent on ineffective local testing by mirroring the Openshift environment locally with Docker. Took over the overhaul of skolverket.se and brought it over the finish line.',
   },
   {
-    key: 3,
+    key: 4,
     position: 'Software Developer',
     company: 'One Agency',
     companyLink: 'https://oneagency.se',
@@ -47,7 +57,7 @@ const data: DetailsProps[] = [
     work: 'Spearheaded the front-end team (3 people) to build a CSS Grid-based dashboard for a monitoring web application. Improved the CI/CD flow in CircleCI to avoid unnecessary failed builds and reduced unnecessary resource wastage in AWS. Took ownership and resolved critical bugs that had been threatened the relationship with the client’s top influencer bloggers..',
   },
   {
-    key: 4,
+    key: 5,
     position: 'Front-End Developer',
     company: 'Kivra',
     companyLink: 'https://kivra.se',
