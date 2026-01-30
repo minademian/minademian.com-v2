@@ -1,5 +1,6 @@
 'use client';
 
+import { StaticImageData } from 'next/image';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 
@@ -12,8 +13,10 @@ type ProjectVideoProps = {
   title: string;
   summary: string;
   videoSrc: string;
+  img: StaticImageData;
   link: string | URL;
   github?: string | null;
+  stack?: string[];
 };
 
 export const FeaturedProjectVideo = ({
@@ -21,8 +24,10 @@ export const FeaturedProjectVideo = ({
   title,
   summary,
   videoSrc,
+  img,
   link,
   github,
+  stack,
 }: ProjectVideoProps) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -40,15 +45,15 @@ export const FeaturedProjectVideo = ({
   };
 
   return (
-    <article className="w-full flex items-center justify-between 2xs:flex-col relative rounded-br-2xl rounded-3xl border border-solid border-dark bg-light dark:bg-dark dark:border-light shadow-2xl p-12 2xs:p-3">
+    <article className="relative w-full p-6 bg-light dark:bg-dark border border-solid border-dark dark:border-light rounded-2xl dark:text-light">
       <div className="absolute top-0 -right-3 -z-10 w-[101%] h-[103%] rounded-[2rem] bg-dark dark:bg-light" />
-
-      <div className="relative aspect-[9/19.5] max-w-[360px] mx-auto rounded-2xl overflow-hidden">
+      <div className="flex items-center justify-between 2xs:flex-col">
+        <div className="relative aspect-[9/19.5] max-w-[360px] mx-auto rounded-2xl overflow-hidden">
         <video
           ref={videoRef}
           preload="metadata"
           className="w-full h-full object-contain block rounded-2xl"
-          poster="/placeholder.jpg"
+          poster={img.src}
           muted
           loop
           onClick={handlePlay}
@@ -85,7 +90,6 @@ export const FeaturedProjectVideo = ({
               <GitHubIcon />
             </Link>
           )}
-
           {link != '#' && (
             <Link
               href=""
@@ -94,9 +98,13 @@ export const FeaturedProjectVideo = ({
               View on GitHub
             </Link>
           )}
-
-          <TechStack techs={['React', 'Styled Components', 'TypeScript', 'MongoDB', 'HashiCorp Nomad', 'Docker', 'REST APIs', 'Microservices', 'Node', 'Express', 'Google Maps API']} />
         </div>
+        {stack && stack.length > 0 && (
+          <div className="mt-4">
+            <TechStack techs={stack} />
+          </div>
+        )}
+      </div>
       </div>
     </article>
   );
