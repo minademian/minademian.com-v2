@@ -52,6 +52,7 @@ public/videos/
 
 infra/*
 !infra/README.md
+TECH_STACK.md
 
 docs/*
 !docs/INVESTIGATION.md

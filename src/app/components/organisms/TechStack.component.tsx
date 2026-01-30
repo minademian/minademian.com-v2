@@ -43,9 +43,45 @@ export const TechStack = ({ techs }: TechStackProps) => {
     case 'javascript':
       return 'bg-yellow-400 text-gray-800';
     case 'java':
+    case 'java 17':
+    case 'java 23':
       return 'bg-red-500 text-white';
+    case 'spring boot':
+    case 'spring boot 3':
+      return 'bg-green-500 text-white';
+    case 'jpa':
+      return 'bg-amber-600 text-white';
+    case 'flyway':
+      return 'bg-red-700 text-white';
+    case 'junit':
+      return 'bg-green-800 text-white';
+    case 'vite':
+      return 'bg-purple-500 text-white';
+    case 'material-ui':
+    case 'mui':
+      return 'bg-blue-500 text-white';
+    case 'emotion':
+      return 'bg-pink-400 text-white';
+    case 'python 3.12':
+      return 'bg-yellow-500 text-gray-800';
+    case 'fastapi':
+      return 'bg-teal-600 text-white';
+    case 'faster-whisper':
+    case 'whispermodel':
+      return 'bg-gray-700 text-white';
+    case 'chromadb':
+      return 'bg-orange-600 text-white';
+    case 'all-minilm-l6-v2':
+      return 'bg-indigo-500 text-white';
+    case 'vercel':
+      return 'bg-black text-white';
+    case 'mdx':
+      return 'bg-yellow-600 text-gray-800';
+    case 'tailwind css':
+      return 'bg-teal-500 text-white';
+    case 'rest api':
+      return 'bg-yellow-700 text-gray-800';
     case 'nomad':
-      return 'bg-purple-600 text-white';
     case 'hashicorp nomad':
       return 'bg-purple-600 text-white';
     case 'styled components':

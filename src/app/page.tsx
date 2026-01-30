@@ -91,6 +91,14 @@ export default function Page() {
               <div className="mt-6 sm:mt-4 lg:flex lg:justify-center">
                 <TechStack techs={['React', 'TypeScript', 'MongoDB', 'Node']} />
               </div>
+              <div className="mt-4 text-right lg:text-center">
+                <Link
+                  href="/projects"
+                  className="inline-block px-4 py-2 rounded-lg text-dark dark:text-light font-semibold hover:bg-primary hover:text-light dark:hover:bg-primaryDark dark:hover:text-dark transition-all"
+                >
+                  See more projects →
+                </Link>
+              </div>
             </FluidCell>
             <FluidCell variant="right-auto">
               <Link
