@@ -3,6 +3,7 @@ import AnimatedText from '@/organisms/AnimatedText.component';
 import { FeaturedSite } from '@/organisms/FeaturedSite.component';
 import TransitionEffect from '@/organisms/TransitionEffect.component';
 import voltaireImg from '@/public/images/projects/vs_2026.png';
+import { Testimonial } from '../components/organisms/Testimonial.component';
 
 export const metadata = {
   title: 'minademian.com | Portfolio',
@@ -29,6 +30,13 @@ export default function Portfolio() {
               summary="A modern website for Voltaire Stockholm."
               techs={['Parcel', 'HTML', 'JavaScript', 'SCSS']}
               img={voltaireImg}
+              testimonial={<Testimonial
+              contact="Mattias Voltaire"
+              role="Owner"
+                text="Jag kan varmt rekommendera Mina Demian.
+                Under hela processen var Mina lyhörd, engagerad och väldigt lätt att samarbeta med. Han tog sig verkligen tid att förstå mina behov och vision, och kombinerade det med egna genomtänkta idéer och värdefulla inputs som lyfte slutresultatet ytterligare. Jag är jättenöjd med både processen och den färdiga hemsidan, och skulle utan tvekan anlita Mina igen."
+                translation="I can warmly recommend Mina Demian. Throughout the entire process, Mina was attentive, engaged, and very easy to collaborate with. He truly took the time to understand my needs and vision, and combined that with his own well-thought-out ideas and valuable input that elevated the final result even further. I am extremely satisfied with both the process and the finished website, and would not hesitate to hire Mina again."
+              />}
             />
           </div>
         </SectionComponent>
