@@ -12,6 +12,7 @@ type FeaturedSiteProps = {
   img?: StaticImageData | string;
   link: string | URL;
   techs?: string[];
+  testimonial?: React.ReactNode;
 };
 
 export const FeaturedSite = ({
@@ -21,6 +22,7 @@ export const FeaturedSite = ({
   img,
   link,
   techs = [],
+  testimonial,
 }: FeaturedSiteProps) => {
   return (
     <article className="w-full flex items-center justify-between lg:flex-col relative rounded-br-2xl rounded-3xl border border-solid border-dark bg-light dark:bg-dark dark:border-light shadow-2xl p-12 lg:p-8 md:p-6 2xs:p-4">
@@ -66,6 +68,10 @@ export const FeaturedSite = ({
           )}
 
           {techs.length > 0 && <TechStack techs={techs} />}
+
+          <div className="mt-4 w-full">
+            {testimonial}
+          </div>
         </div>
       </div>
     </article>
