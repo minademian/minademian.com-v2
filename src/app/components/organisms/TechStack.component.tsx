@@ -92,6 +92,24 @@ export const TechStack = ({ techs }: TechStackProps) => {
       return 'bg-cyan-600 text-white';
     case 'google maps api':
       return 'bg-blue-600 text-white';
+    case 'react native':
+      return 'bg-sky-500 text-white';
+    case 'sqlite':
+      return 'bg-cyan-700 text-white';
+    case 'mmkv':
+      return 'bg-violet-500 text-white';
+    case 'aws location services api':
+      return 'bg-orange-500 text-white';
+    case 'expo':
+    case 'expo-audio':
+    case 'expo-video':
+      return 'bg-slate-700 text-white';
+    case 'github actions':
+      return 'bg-gray-800 text-white';
+    case 'yaml':
+      return 'bg-rose-500 text-white';
+    case 'bash':
+      return 'bg-emerald-700 text-white';
     default:
       return 'bg-gray-300 text-gray-800';
     }

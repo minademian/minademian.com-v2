@@ -12,7 +12,7 @@ export const GitHubPill = ({ href, label }: GitHubPillProps) => {
       target="_blank"
       className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1 rounded-full
         bg-dark text-light dark:bg-light dark:text-dark
-        hover:bg-dark/80 dark:hover:bg-light/80 transition-colors"
+        hover:bg-dark/80 dark:hover:bg-light/80 transition-colors whitespace-nowrap"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
