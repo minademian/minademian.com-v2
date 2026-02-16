@@ -56,7 +56,7 @@ export const ProjectsView = ({ projects }: ProjectsViewProps) => {
       <div className="col-span-6 2xs:col-span-6 2xs:mr-8 space-y-8">
         {filtered.length > 0 ? (
           filtered.map((project) =>
-            project.featured ? (
+            (project.featured ? (
               <FeaturedProjectVideo
                 key={project.title}
                 type={resolveType(project)}
@@ -78,7 +78,7 @@ export const ProjectsView = ({ projects }: ProjectsViewProps) => {
                 summary={project.summary}
                 stack={project.stack}
               />
-            ),
+            )),
           )
         ) : (
           <p className="text-center text-dark/50 dark:text-light/50 py-12 text-lg">
