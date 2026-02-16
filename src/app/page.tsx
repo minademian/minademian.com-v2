@@ -19,6 +19,8 @@ import TransitionEffect from '@/organisms/TransitionEffect.component';
 import profilePic from '@/public/images/art/homepage-art-3.png';
 import projectImg from '@/public/images/projects/dr/dr-preview.png';
 
+import { InlineCode } from './components/atoms/InlineCode.component';
+
 export default function Page() {
   return (
     <>
@@ -122,26 +124,26 @@ export default function Page() {
             {/* About */}
             <GridCell className="border-l-4 border-primary dark:border-primaryDark pl-6">
               <h3 className="text-lg font-bold mb-4 text-dark dark:text-light">
-                Latest Publications
+                Latest News
               </h3>
               <ul className="space-y-4 text-base text-dark/80 dark:text-light/80 leading-relaxed">
                 <li className="flex items-start gap-2">
                   <span className="text-primary dark:text-primaryDark">•</span>
                   <span>
-                    I&apos;ve launched my{' '}
-                    <GitHubPill
-                      href="https://github.com/minademian/documentation-library"
-                      label="documentation-library"
-                    />
-                    !
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary dark:text-primaryDark">•</span>
-                  <span>
-                    My first two open-source packages!
+                    My open-source packages!
                     <table className="mt-2 text-sm">
                       <tbody>
+                        <tr>
+                          <td className="pr-3 py-1 align-top">
+                            <GitHubPill
+                              href="https://github.com/ursine-code/static-deploy-kit"
+                              label="static-deploy-kit"
+                            />
+                          </td>
+                          <td className="py-1">
+                            Reusable GitHub Actions CI/CD framework for Next.js projects
+                          </td>
+                        </tr>
                         <tr>
                           <td className="pr-3 py-1 align-top">
                             <GitHubPill
@@ -154,18 +156,29 @@ export default function Page() {
                           </td>
                         </tr>
                         <tr>
-                          <td className="pr-3 py-1 align-top">
+                          <td className="pr-2 py-1 align-top">
                             <GitHubPill
                               href="https://github.com/ursine-code/yarn-shell-completion"
                               label="yarn-shell-completion"
                             />
                           </td>
                           <td className="py-1">
-                            Yarn shell completion for ohmyzsh and bash
+                            Yarn shell completion for <InlineCode>ohmyzsh</InlineCode> and <InlineCode>bash</InlineCode>
                           </td>
                         </tr>
                       </tbody>
                     </table>
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary dark:text-primaryDark">•</span>
+                  <span>
+                    I&apos;ve launched my{' '}
+                    <GitHubPill
+                      href="https://github.com/minademian/documentation-library"
+                      label="documentation-library"
+                    />
+                    ! Latest piece is a write-up on how I grafted in the Adapter design pattern into a React Native project.
                   </span>
                 </li>
               </ul>
@@ -179,28 +192,6 @@ export default function Page() {
                   <tr className="bg-primary/5 dark:bg-primaryDark/5">
                     <td className="px-3 py-2">
                       <Link
-                        href="https://www.linkedin.com/pulse/lessons-learned-from-react-native-app-production-mina-demian-cd3cf/"
-                        target="_blank"
-                        className="text-primary dark:text-primaryDark underline underline-offset-2 hover:text-dark dark:hover:text-light transition-colors"
-                      >
-                        Lessons Learned from React Native App Production
-                      </Link>
-                    </td>
-                  </tr>
-                  <tr className="bg-dark/5 dark:bg-light/5">
-                    <td className="px-3 py-2">
-                      <Link
-                        href="https://www.linkedin.com/pulse/grafting-tdd-legacy-react-native-codebase-mina-demian-iy5df/"
-                        target="_blank"
-                        className="text-primary dark:text-primaryDark underline underline-offset-2 hover:text-dark dark:hover:text-light transition-colors"
-                      >
-                        Grafting TDD into a Legacy React Native Codebase
-                      </Link>
-                    </td>
-                  </tr>
-                  <tr className="bg-primary/5 dark:bg-primaryDark/5">
-                    <td className="px-3 py-2">
-                      <Link
                         href="https://www.linkedin.com/pulse/timeboxing-ideas-ai-assisted-engineering-mina-demian-5z0mf/"
                         target="_blank"
                         className="text-primary dark:text-primaryDark underline underline-offset-2 hover:text-dark dark:hover:text-light transition-colors"
@@ -209,14 +200,36 @@ export default function Page() {
                       </Link>
                     </td>
                   </tr>
-                  <tr className="bg-dark/5 dark:bg-light/5">
+                  <tr className="bg-primary/5 dark:bg-primaryDark/5">
                     <td className="px-3 py-2">
                       <Link
-                        href="https://www.linkedin.com/pulse/using-adapter-pattern-tame-wild-react-native-upgrades-mina-demian-jagmf/"
+                        href="https://github.com/minademian/documentation-library/blob/main/react-native-in-production-series/part-1-lessons-learned.md"
                         target="_blank"
                         className="text-primary dark:text-primaryDark underline underline-offset-2 hover:text-dark dark:hover:text-light transition-colors"
                       >
-                        Using the Adapter Pattern to Tame Wild React Native
+                        RN in Production Part 1: Lessons Learned from React Native App Production
+                      </Link>
+                    </td>
+                  </tr>
+                  <tr className="bg-dark/5 dark:bg-light/5">
+                    <td className="px-3 py-2">
+                      <Link
+                        href="https://github.com/minademian/documentation-library/blob/main/react-native-in-production-series/part-2-grafting-in-TDD.md"
+                        target="_blank"
+                        className="text-primary dark:text-primaryDark underline underline-offset-2 hover:text-dark dark:hover:text-light transition-colors"
+                      >
+                      RN in Production Part 2: Grafting TDD into a Legacy React Native Codebase
+                      </Link>
+                    </td>
+                  </tr>
+                  <tr className="bg-dark/5 dark:bg-light/5">
+                    <td className="px-3 py-2">
+                      <Link
+                        href="https://github.com/minademian/documentation-library/blob/main/react-native-in-production-series/part-3-using-adapter-pattern.md"
+                        target="_blank"
+                        className="text-primary dark:text-primaryDark underline underline-offset-2 hover:text-dark dark:hover:text-light transition-colors"
+                      >
+                      RN in Production Part 3: Using the Adapter Pattern to Tame Wild React Native
                         Upgrades
                       </Link>
                     </td>
