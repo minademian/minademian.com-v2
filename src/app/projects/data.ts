@@ -1,6 +1,6 @@
 import DRImg from '@/public/images/projects/dr/dr-preview.png';
 import RPImg from '@/public/images/projects/rpo/tn_2026.png';
-import SSPImg from '@/public/images/projects/ssp/tn_1_2026.png';
+import SSPImg from '@/public/images/projects/ssp/tn_2026.png';
 
 import { ProjectData } from '../components/organisms/ProjectsView.component';
 
