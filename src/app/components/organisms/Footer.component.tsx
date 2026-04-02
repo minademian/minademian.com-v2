@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import * as React from 'react';
 
 import { SectionComponent } from '@/components/atoms/Section.component';
 
@@ -22,12 +21,11 @@ const Footer = () => {
           </Link>
         </span>
         <span>
-          Inspired by{' '}
           <Link
-            href="https://devdreaming.com"
+            href="/privacy-policy"
             className="underline underline-offset-2"
           >
-            CodeBucks
+            Privacy Policy
           </Link>
         </span>
       </SectionComponent>
